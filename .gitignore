@@ -63,3 +63,10 @@ Homestead.json
 Homestead.yaml
 /auth.json
 /.claude/settings.local.json
+
+# ---------------------------------------------------------------------------
+# Graphify — keluaran turunan dari analisis kode (graph.json, graph.html,
+# laporan). Bisa dibangun ulang dengan `graphify extract . --code-only`, jadi
+# tidak perlu disimpan di riwayat Git.
+# ---------------------------------------------------------------------------
+/graphify-out

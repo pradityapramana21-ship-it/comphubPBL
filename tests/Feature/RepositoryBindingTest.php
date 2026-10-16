@@ -221,7 +221,7 @@ class RepositoryBindingTest extends TestCase
     }
 
     #[Test]
-    public function laporan_ganda_dari_pelapor_sama_mengembalikan_laporan_lama(): void
+    public function pelapor_sama_menemukan_laporannya_yang_sudah_ada(): void
     {
         $repo = app(ReportRepository::class);
         $reporter = $this->user('reporter@test', UserRole::User);

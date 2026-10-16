@@ -217,6 +217,22 @@ php artisan test --filter=ViewSmokeTest # satu berkas
 
 ---
 
+## Graphify (analisis kode)
+
+Knowledge graph proyek dibangun dengan Graphify:
+
+```bash
+graphify extract . --code-only     # bangun graph.json dari kode
+graphify cluster-only .            # deteksi komunitas + laporan
+graphify god-nodes --top 10        # simpul paling terhubung
+graphify query "alur moderasi kegiatan" --budget 1200
+```
+
+Keluaran ada di `graphify-out/` (graph.json, graph.html, GRAPH_REPORT.md)
+dan **tidak** ikut di Git — bisa dibangun ulang kapan saja.
+
+---
+
 ## Perintah yang sering dipakai
 
 ```bash
