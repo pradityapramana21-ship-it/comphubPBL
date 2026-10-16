@@ -102,11 +102,6 @@ class Event extends Model
         return $this->hasMany(EventReport::class)->where('status', ReportStatus::Open->value);
     }
 
-    /** Jumlah user yang menyimpan; cache agar kartu tidak perlu query. */
-    public function bookmarkTotal(): int
-    {
-        return (int) ($this->attributes['bookmark_count'] ?? $this->bookmarks()->count());
-    }
 
     // ------------------------------------------------------- scope publik
 
@@ -321,9 +316,17 @@ class Event extends Model
         return $this->status->isEditableByProvider();
     }
 
-    public function bookmarkCount(): int
+    /**
+     * Jumlah pengguna yang menyimpan kegiatan ini.
+     *
+     * NAMANYA BUKAN bookmarkCount() atau bookmarkTotal(). Eloquent memakai
+     * pola /{relasi}(Count|Total)/ untuk mengenali hasil withCount(), dan
+     * sebuah method bernama seperti itu dianggap RELASI — sehingga
+     * memanggilnya melempar "must return a relationship instance".
+     */
+    public function savedCount(): int
     {
-        return $this->bookmarks()->count();
+        return (int) ($this->attributes['bookmark_count'] ?? $this->bookmarks()->count());
     }
 
     /**

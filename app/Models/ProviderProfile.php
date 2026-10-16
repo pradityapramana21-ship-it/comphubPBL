@@ -29,6 +29,17 @@ class ProviderProfile extends Model
     protected $table = 'provider_profiles';
 
     /**
+     * Default di level model. Tanpa ini, instance yang baru dibuat punya
+     * verification_status = null sampai di-refresh — dan setiap kode yang
+     * membandingkan dengan enum akan gagal diam-diam.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'verification_status' => 'pending',
+    ];
+
+    /**
      * Sengaja TIDAK mass-assignable:
      * `verification_status`, `verified_at`, `verified_by`, `verification_note`.
      *

@@ -317,7 +317,7 @@ class ModelBehaviourTest extends TestCase
         ]);
 
         $this->assertTrue($this->normalUser->bookmarkedEvents()->where('events.id', $event->id)->exists());
-        $this->assertSame(1, $event->bookmarkCount());
+        $this->assertSame(1, $event->savedCount());
     }
 
     #[Test]

@@ -160,6 +160,14 @@ class EloquentEventRepository implements EventRepository
         Event::query()->whereKey($id)->increment('bookmark_count');
     }
 
+    public function decrementBookmarkCount(int $id): void
+    {
+        // GREATEST(..., 0) menjaga angka tidak pernah turun ke negatif.
+        Event::query()
+            ->whereKey($id)
+            ->update(['bookmark_count' => \DB::raw('GREATEST(bookmark_count - 1, 0)')]);
+    }
+
     public function countAll(): int
     {
         return Event::query()->count();

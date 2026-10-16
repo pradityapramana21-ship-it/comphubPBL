@@ -62,6 +62,14 @@ interface EventRepository
     /** Naikkan penghitung bookmark dalam satu operasi atomik. */
     public function incrementBookmarkCount(int $id): void;
 
+    /**
+     * Turunkan penghitung bookmark, tapi tidak pernah di bawah nol.
+     *
+     * Menghapus penyimpanan terakhir harus mengembalikan 0, bukan -1 —
+     * angka negatif akan tampil di UI dan merusak urutan popularitas.
+     */
+    public function decrementBookmarkCount(int $id): void;
+
     public function countAll(): int;
 
     public function countByStatus(): array;

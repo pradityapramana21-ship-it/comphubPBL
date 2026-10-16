@@ -26,6 +26,22 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
 
     /**
+     * Default di level model, bukan hanya di level database.
+     *
+     * Tanpa ini, instance yang baru dibuat lewat User::create() punya
+     * account_status = null sampai di-refresh. Middleware EnsureAccountIsActive
+     * memperlakukan null sebagai "bukan aktif", jadi user yang sah langsung
+     * ikut tertolak. Category::is_active punya masalah yang sama dan sudah
+     * ditangani dengan cara yang sama.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'role' => 'user',
+        'account_status' => 'active',
+    ];
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array
