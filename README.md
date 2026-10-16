@@ -195,6 +195,28 @@ Rincian: `docs/00-project/`
 
 ---
 
+## Pengujian
+
+| Berkas | Yang dijamin |
+|---|---|
+| `tests/Unit/Moderation/` | Tiap aturan deteksi spam, satu test per aturan |
+| `tests/Feature/RoutingTest.php` | 63 rute ada, punya nama, dan middleware-nya menahan |
+| `tests/Feature/ViewSmokeTest.php` | Setiap halaman benar-benar dirender untuk tiap role |
+| `tests/Feature/WriteFlowTest.php` | Alur tulis lewat HTTP: draf, pengajuan, moderasi, laporan, bookmark |
+| `tests/Feature/RuntimeRegressionTest.php` | Cache production, id non-angka, dan rate limiter |
+| `tests/Feature/Database/DatabaseSeederTest.php` | Seed jalan dari database kosong dan deterministik |
+| `tests/Feature/Database/FactoryTest.php` | Factory cocok dengan skema database |
+
+```bash
+php artisan test                        # semuanya
+php artisan test --filter=ViewSmokeTest # satu berkas
+```
+
+> Catatan: `RuntimeRegressionTest` sengaja memaksa `CACHE_STORE=database`.
+> Dengan cache array, test biasa tidak akan pernah menangkap masalah cache.
+
+---
+
 ## Perintah yang sering dipakai
 
 ```bash
