@@ -243,6 +243,41 @@ class ViewSmokeTest extends TestCase
             ->assertOk();
     }
 
+    /**
+     * Paginasi yang benar-benar punya banyak halaman.
+     *
+     * Smoke test lain memakai data sedikit, jadi paginator hanya punya
+     * satu halaman dan kode di dalam partial tidak pernah dieksekusi.
+     * Di sinilah bug seperti `getElements()` yang sudah tidak ada lagi di
+     * Laravel 13 baru muncul: halaman_openublication gagal 500 hanya
+     * kalau data-nya cukup banyak untuk jadi dua halaman.
+     */
+    #[Test]
+    public function halaman_dengan_lebih_dari_satu_halaman_data_tetap_dirender(): void
+    {
+        Event::factory(30)->published()->create();
+
+        // Halaman admin memakai akun admin, sisanya boleh tamu.
+        $publik = ['/kegiatan', '/penyelenggara'];
+        $admin = ['/admin/kegiatan', '/admin/audit'];
+
+        foreach ($publik as $uri) {
+            $this->get($uri)->assertOk();
+            $this->get($uri.'?page=2')->assertOk();
+        }
+
+        foreach ($admin as $uri) {
+            $this->actingAs($this->admin)->get($uri)->assertOk();
+            $this->actingAs($this->admin)->get($uri.'?page=2')->assertOk();
+        }
+
+        // Dan markup paginasinya benar-benar muncul, bukan sekadar tidak error.
+        $this->get('/kegiatan')
+            ->assertOk()
+            ->assertSee('Navigasi halaman')
+            ->assertSee('Berikutnya');
+    }
+
     // ------------------------------------------------------------- utilitas
 
     private function makeUser(string $email, UserRole $role): User

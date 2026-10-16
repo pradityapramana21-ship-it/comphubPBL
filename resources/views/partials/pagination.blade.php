@@ -1,13 +1,25 @@
 {{--
     Paginasi.
 
-    Mengganti $paginator->links() bawaan Laravel karena yang bawaan
-    menghasilkan markup yang tidak konsisten dengan token warna di sini,
-    dan tombol navigasi perlu punya label yang jelas
-    untuk pembaca layar.
+    Paginasi tidak memakai $paginator->links() bawaan karena markup-nya
+    tidak memakai token warna di sini. Yang dipakai adalah
+    linkCollection(): API publik yang mengembalikan daftar nomor halaman
+    beserta penanda "..." — bukan `elements()`, yang protected dan
+    berubah setiap versi Laravel.
+
+    Partial ini juga tahan banting: kalau variabelnya ternyata bukan
+    paginator (mis. karena ada controller yang keliru), komponen ini
+    dilewati saja dan halaman tetap tampil. Paginasi bersifat kosmetik;
+    ia tidak boleh menjatuhkan seluruh halaman.
 --}}
-@if ($paginator->hasPages())
-    @php $elements = $paginator->getElements(); @endphp
+@if ($paginator instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator && $paginator->hasPages())
+    @php
+        $semua = $paginator->linkCollection();
+        $sebelumnya = $semua->first();
+        $berikutnya = $semua->last();
+        $nomor = $semua->slice(1, max($semua->count() - 2, 0));
+    @endphp
+
     <nav class="mt-4" aria-label="Navigasi halaman">
         <ul class="pagination justify-content-center mb-0">
             @if ($paginator->onFirstPage())
@@ -16,35 +28,30 @@
                 </li>
             @else
                 <li class="page-item">
-                    <a class="page-link" href="{{ $paginator->previousPageUrl() }}" rel="prev">Sebelumnya</a>
+                    <a class="page-link" href="{{ $sebelumnya['url'] }}" rel="prev">Sebelumnya</a>
                 </li>
             @endif
 
-            @foreach ($elements as $element)
-                @if (is_string($element))
+            @foreach ($nomor as $link)
+                @if ($link['label'] === '...')
                     <li class="page-item disabled" aria-disabled="true">
-                        <span class="page-link">{{ $element }}</span>
+                        <span class="page-link" aria-hidden="true">&hellip;</span>
+                        <span class="visually-hidden">Halaman lainnya</span>
                     </li>
-                @endif
-
-                @if (is_array($element))
-                    @foreach ($element as $page => $url)
-                        @if ($page == $paginator->currentPage())
-                            <li class="page-item active" aria-current="page">
-                                <span class="page-link">{{ $page }}</span>
-                            </li>
-                        @else
-                            <li class="page-item">
-                                <a class="page-link" href="{{ $url }}">{{ $page }}</a>
-                            </li>
-                        @endif
-                    @endforeach
+                @elseif ($link['active'])
+                    <li class="page-item active" aria-current="page">
+                        <span class="page-link">{{ $link['label'] }}</span>
+                    </li>
+                @else
+                    <li class="page-item">
+                        <a class="page-link" href="{{ $link['url'] }}">{{ $link['label'] }}</a>
+                    </li>
                 @endif
             @endforeach
 
             @if ($paginator->hasMorePages())
                 <li class="page-item">
-                    <a class="page-link" href="{{ $paginator->nextPageUrl() }}" rel="next">Berikutnya</a>
+                    <a class="page-link" href="{{ $berikutnya['url'] }}" rel="next">Berikutnya</a>
                 </li>
             @else
                 <li class="page-item disabled" aria-disabled="true">
