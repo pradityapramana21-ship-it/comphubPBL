@@ -10,9 +10,19 @@ use Illuminate\Validation\Rule;
 
 class StoreReportRequest extends FormRequest
 {
+    /**
+     * Parameter rute yang sudah di-resolve, bukan string mentah.
+     *
+     * Penting: $this->route('event') MEMANG mengembalikan objek model
+     * untuk model yang terikat, tetapi untuk pengikatan eksplisit seperti
+     * {event:id} ia mengembalikan string. Mengambil lewat
+     * $this->route()->parameter() selalu konsisten: objek kalau ada
+     * substitusinya, nilai mentah kalau tidak ada — dipakai baik oleh
+     * authorize() maupun rules() supaya keduanya melihat objek yang sama.
+     */
     public function authorize(): bool
     {
-        $event = $this->route('event');
+        $event = $this->route()->parameter('event');
 
         return $event !== null && $this->user()?->can('report', $event) === true;
     }

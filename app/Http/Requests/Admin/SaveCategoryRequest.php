@@ -18,16 +18,31 @@ class SaveCategoryRequest extends FormRequest
     /** @return array<string, array<int, mixed>> */
     public function rules(): array
     {
-        $categoryId = $this->route('category')?->id;
+        $categoryId = $this->route()->parameter('category')?->id;
 
         return [
-            'name' => ['required', 'string', 'min:3', 'max:80'],
+            // Nama kategori UNIQUE di database. Aturannya ikut dicantumkan
+            // di sini supaya orang melihat "nama ini sudah dipakai"
+            // alih-alih halaman 500 dari pelanggaran constraint.
+            'name' => [
+                'required', 'string', 'min:3', 'max:80',
+                Rule::unique('categories', 'name')->ignore($categoryId),
+            ],
             'slug' => [
                 'nullable', 'string', 'max:80', 'alpha_dash',
                 Rule::unique('categories', 'slug')->ignore($categoryId),
             ],
             'description' => ['nullable', 'string', 'max:500'],
             'is_active' => ['nullable', 'boolean'],
+        ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return [
+            'name.unique' => 'Kategori dengan nama itu sudah ada.',
+            'slug.unique' => 'Slug itu sudah dipakai kategori lain.',
         ];
     }
 

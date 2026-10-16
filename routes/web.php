@@ -83,11 +83,11 @@ Route::get('/kontak', [StaticPageController::class, 'contact'])->name('pages.con
 */
 
 Route::middleware('auth')->group(function (): void {
-    Route::post('/kegiatan/{event:id}/bookmark', [EventCatalogController::class, 'store'])
+    Route::post('/kegiatan/{event:id}/bookmark', [EventCatalogController::class, 'store'])->whereNumber('event')
         ->middleware('throttle:bookmark')
         ->name('events.bookmark.store');
 
-    Route::delete('/kegiatan/{event:id}/bookmark', [EventCatalogController::class, 'destroy'])
+    Route::delete('/kegiatan/{event:id}/bookmark', [EventCatalogController::class, 'destroy'])->whereNumber('event')
         ->middleware('throttle:bookmark')
         ->name('events.bookmark.destroy');
 });
@@ -152,8 +152,8 @@ Route::middleware(['auth', 'role:user'])->group(function (): void {
     Route::get('/profil/sandi', [ProfileController::class, 'editPassword'])->name('user.profile.password.edit');
     Route::put('/profil/sandi', [ProfileController::class, 'updatePassword'])->name('user.profile.password.update');
 
-    Route::get('/kegiatan/{event:id}/laporkan', [ReportController::class, 'create'])->name('user.reports.create');
-    Route::post('/kegiatan/{event:id}/laporkan', [ReportController::class, 'store'])
+    Route::get('/kegiatan/{event:id}/laporkan', [ReportController::class, 'create'])->whereNumber('event')->name('user.reports.create');
+    Route::post('/kegiatan/{event:id}/laporkan', [ReportController::class, 'store'])->whereNumber('event')
         ->middleware('throttle:report')
         ->name('user.reports.store');
     Route::delete('/laporan/{report}', [ReportController::class, 'destroy'])->name('user.reports.destroy');
@@ -194,16 +194,24 @@ Route::middleware(['auth', 'role:provider'])
             ->name('provider.profile.update');
 
         Route::get('/kegiatan', [ProviderEventController::class, 'index'])->name('provider.events.index');
-        Route::get('/kegiatan/baru', [ProviderEventController::class, 'create'])->name('provider.events.create');
-        Route::post('/kegiatan', [ProviderEventController::class, 'store'])->name('provider.events.store');
-        Route::get('/kegiatan/{event:id}/sunting', [ProviderEventController::class, 'edit'])->name('provider.events.edit');
-        Route::put('/kegiatan/{event:id}', [ProviderEventController::class, 'update'])->name('provider.events.update');
-        Route::get('/kegiatan/{event:id}', [ProviderEventController::class, 'show'])->name('provider.events.show');
-        Route::delete('/kegiatan/{event:id}', [ProviderEventController::class, 'destroy'])->name('provider.events.destroy');
+
+        // Membuat kegiatan butuh verifikasi. Tanpa middleware ini, policy
+        // akan menjawab 403 yang kosong dari penyedia yang organisasinya
+        // belum diperiksa; dengan middleware, orang diarahkan ke dasbor
+        // beserta penjelasan yang bisa ditindaklanjuti.
+        Route::middleware('verified')->group(function (): void {
+            Route::get('/kegiatan/baru', [ProviderEventController::class, 'create'])->name('provider.events.create');
+            Route::post('/kegiatan', [ProviderEventController::class, 'store'])->name('provider.events.store');
+        });
+
+        Route::get('/kegiatan/{event:id}/sunting', [ProviderEventController::class, 'edit'])->whereNumber('event')->name('provider.events.edit');
+        Route::put('/kegiatan/{event:id}', [ProviderEventController::class, 'update'])->whereNumber('event')->name('provider.events.update');
+        Route::get('/kegiatan/{event:id}', [ProviderEventController::class, 'show'])->whereNumber('event')->name('provider.events.show');
+        Route::delete('/kegiatan/{event:id}', [ProviderEventController::class, 'destroy'])->whereNumber('event')->name('provider.events.destroy');
 
         // Pengajuan ke administrator: hanya setelah verifikasi.
         Route::middleware('verified')->group(function (): void {
-            Route::post('/kegiatan/{event:id}/ajukan', [ProviderEventController::class, 'submit'])
+            Route::post('/kegiatan/{event:id}/ajukan', [ProviderEventController::class, 'submit'])->whereNumber('event')
                 ->middleware('throttle:event-submit')
                 ->name('provider.events.submit');
         });
@@ -218,16 +226,25 @@ Route::middleware(['auth', 'role:provider'])
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function (): void {
     Route::get('/', AdminDashboardController::class)->name('dashboard');
 
+    // CATATAN: setiap {x:id} diberi whereNumber(). Kategori dikecualikan
+    // karena route key-nya slug, bukan angka.
+    //
+    // Tanpa batasan itu, URL seperti
+    // /admin/kegiatan/abc diteruskan ke PostgreSQL sebagai pencarian id
+    // dan jawabannya 500 "invalid input syntax for type bigint", bukan 404.
+    // Dengan whereNumber, segmen itu tidak pernah cocok dan pengunjung
+    // mendapatkan 404 yang wajar (Panduan §9.2 kasus tepi).
+
     // Antrean tinjauan kegiatan.
     Route::get('/kegiatan', [EventModerationController::class, 'index'])->name('events.index');
-    Route::get('/kegiatan/{event:id}', [EventModerationController::class, 'show'])->name('events.show');
-    Route::post('/kegiatan/{event:id}/moderasi', [EventModerationController::class, 'moderate'])
+    Route::get('/kegiatan/{event:id}', [EventModerationController::class, 'show'])->whereNumber('event')->name('events.show');
+    Route::post('/kegiatan/{event:id}/moderasi', [EventModerationController::class, 'moderate'])->whereNumber('event')
         ->middleware('throttle:global')
         ->name('events.moderate');
 
     // Antrean verifikasi organisasi.
     Route::get('/penyelenggara', [ProviderVerificationController::class, 'index'])->name('providers.index');
-    Route::post('/penyelenggara/{provider:id}/keputusan', [ProviderVerificationController::class, 'decide'])
+    Route::post('/penyelenggara/{provider:id}/keputusan', [ProviderVerificationController::class, 'decide'])->whereNumber('provider')
         ->name('providers.decide');
 
     // Antrean laporan.
@@ -238,7 +255,7 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
 
     // Manajemen akun.
     Route::get('/pengguna', [UserManagementController::class, 'index'])->name('users.index');
-    Route::patch('/pengguna/{user:id}', [UserManagementController::class, 'update'])->name('users.update');
+    Route::patch('/pengguna/{user:id}', [UserManagementController::class, 'update'])->whereNumber('user')->name('users.update');
 
     // Kategori.
     Route::get('/kategori', [CategoryController::class, 'index'])->name('categories.index');

@@ -134,7 +134,11 @@ class AppServiceProvider extends ServiceProvider
      */
     private function registerRateLimiters(): void
     {
-        RateLimiter::for('login', fn (Request $request): Limit => [
+        // Tipe kembalian di sini sengaja TIDAK ditulis: satu named
+        // limiter boleh mengembalikan beberapa Limit sekaligus, dan
+        // Closure dengan tipe `Limit` akan melempar TypeError tepat saat
+        // route login dipakai — bukan saat aplikasi start.
+        RateLimiter::for('login', fn (Request $request): array => [
             Limit::perMinutes(15, $request->input('email') ? 5 : 3)
                 ->by('login:'.mb_strtolower((string) $request->input('email')).'|'.$request->ip()),
             Limit::perMinutes(60, 10)->by('login-ip:'.$request->ip()),

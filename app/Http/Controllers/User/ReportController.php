@@ -6,6 +6,7 @@ namespace App\Http\Controllers\User;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Report\StoreReportRequest;
+use App\Models\Event;
 use App\Models\EventReport;
 use App\Services\ReportService;
 use Illuminate\Http\RedirectResponse;
@@ -21,7 +22,7 @@ use Illuminate\View\View;
  */
 class ReportController extends Controller
 {
-    public function create(Request $request, \App\Models\Event $event): View
+    public function create(Request $request, Event $event): View
     {
         $this->authorize('report', $event);
 
@@ -31,17 +32,27 @@ class ReportController extends Controller
         ]);
     }
 
-    public function store(StoreReportRequest $request, ReportService $reports): RedirectResponse
+    /**
+     * Parameter $event WAJIB ada di tanda tangan method.
+     *
+     * Pengikatan model Laravel bekerja berdasarkan tanda tangan controller:
+     * kalau method tidak menyebut `Event $event`, middleware SubstituteBindings
+     * tidak punya alasan untuk mengganti "12" di URL dengan objek Event, dan
+     * Form Request hanya melihat string. Form Request pun memeriksa
+     * `$event instanceof Event`, sehingga authorize() selalu menolak dan
+     * mahasiswa tidak bisa melapor sama sekali.
+     */
+    public function store(StoreReportRequest $request, Event $event, ReportService $reports): RedirectResponse
     {
-        $report = $reports->report(
+        $reports->report(
             reporter: $request->user(),
-            event: $request->route('event'),
+            event: $event,
             reason: $request->reason(),
             description: $request->input('description'),
         );
 
         return redirect()
-            ->route('events.show', $request->route('event')->slug)
+            ->route('events.show', $event->slug)
             ->with('success', 'Laporan terkirim. Terima kasih sudah membantu menjaga informasi di sini tetap akurat.');
     }
 

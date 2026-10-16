@@ -14,7 +14,7 @@ class ProviderDecisionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $provider = $this->route('provider');
+        $provider = $this->route()->parameter('provider');
 
         return $provider !== null && $this->user()?->can('verify', $provider) === true;
     }

@@ -18,7 +18,7 @@ class RateLimitRuleTest extends ModerationRuleTestCase
     }
 
     /**
-     * Menyプライム riwayat pengajuan dengan sengaja membuat entri log.
+     * Menggagalkan riwayat pengajuan dengan sengaja membuat entri log.
      * Tidak memakai Event::create karena yang dihitung adalah entri
      * moderation_logs dengan aksi 'submit', bukan jumlah baris kegiatan.
      */

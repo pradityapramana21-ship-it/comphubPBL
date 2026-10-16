@@ -6,10 +6,10 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SaveCategoryRequest;
+use App\Models\Category;
 use App\Repositories\Contracts\CategoryRepository;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\View\View;
 
 class CategoryController extends Controller
@@ -64,7 +64,6 @@ class CategoryController extends Controller
 
     private function forgetCategoryCache(): void
     {
-        Cache::forget('view.categories');
-        Cache::forget('catalog.categories');
+        app(\App\Support\CategoryCache::class)->forget();
     }
 }

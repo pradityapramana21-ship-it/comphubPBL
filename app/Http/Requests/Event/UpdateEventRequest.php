@@ -21,12 +21,19 @@ use Illuminate\Validation\Validator;
  */
 class UpdateEventRequest extends FormRequest
 {
+    /**
+     * Di sini hanya dicek "apakah dia boleh menyentuh form ini".
+     *
+     * Kepemilikan SENGAJA tidak diperiksa di tahap ini. Kalau diperiksa,
+     * Form Request menjawab 403 lebih dulu, padahal untuk kegiatan milik
+     * orang lain jawaban yang benar adalah 404 supaya keberadaannya tidak
+     * bocor. Pemeriksaan kepemilikan tetap ada, hanya dipindah ke
+     * ProviderEventController::ownEvent() supaya jawabannya konsisten.
+     */
     public function authorize(): bool
     {
-        $event = $this->route('event');
-
-        return $event instanceof Event
-            && $this->user()?->can('update', $event) === true;
+        return $this->user()?->isProvider() === true
+            && $this->user()->canAccessApplication();
     }
 
     /** @return array<string, array<int, mixed>> */

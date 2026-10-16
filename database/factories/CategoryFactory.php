@@ -1,0 +1,40 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Database\Factories;
+
+use App\Models\Category;
+use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
+
+/**
+ * @extends Factory<Category>
+ */
+class CategoryFactory extends Factory
+{
+    protected $model = Category::class;
+
+    /**
+     * @return array<string, mixed>
+     */
+    public function definition(): array
+    {
+        $name = fake()->randomElement([
+            'Lomba', 'Webinar', 'Seminar', 'Workshop', 'Pelatihan', 'Beasiswa',
+        ]).' '.Str::random(6);
+
+        return [
+            'name' => $name,
+            'slug' => Str::slug($name),
+            'description' => fake()->optional()->sentence(8),
+            'is_active' => true,
+        ];
+    }
+
+    /** Kategori yang dinonaktifkan: tetap ada, tidak bisa dipilih lagi. */
+    public function inactive(): static
+    {
+        return $this->state(fn (array $attributes): array => ['is_active' => false]);
+    }
+}

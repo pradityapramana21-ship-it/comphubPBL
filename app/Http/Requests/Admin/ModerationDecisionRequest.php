@@ -21,7 +21,7 @@ class ModerationDecisionRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $event = $this->route('event');
+        $event = $this->route()->parameter('event');
 
         return $event !== null && $this->user()?->can('moderate', $event) === true;
     }

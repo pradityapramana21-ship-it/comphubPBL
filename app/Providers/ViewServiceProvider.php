@@ -6,10 +6,10 @@ namespace App\Providers;
 
 use App\Enums\VerificationStatus;
 use App\Models\Category;
-use App\Repositories\Contracts\CategoryRepository;
 use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\ProviderProfileRepository;
 use App\Repositories\Contracts\ReportRepository;
+use App\Support\CategoryCache;
 use App\Support\DateHelper;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Cache;
@@ -53,21 +53,12 @@ class ViewServiceProvider extends ServiceProvider
         });
     }
 
-    /** @return \Illuminate\Support\Collection<int, Category> */
+    /** @return \Illuminate\Support\Collection<int, object> */
     private function categories()
     {
-        return Cache::remember('view.categories', now()->addMinutes(30), function () {
-            try {
-                return app(CategoryRepository::class)->allActive();
-            } catch (\Throwable $e) {
-                // Kalau database belum siap, halaman statis tetap harus
-                // bisa dibuka. Menu filter kosong lebih baik daripada
-                // halaman putih.
-                Log::warning('Gagal memuat kategori untuk menu: '.$e->getMessage());
-
-                return collect();
-            }
-        });
+        // Cache yang sama dengan yang dipakai controller: satu sumber
+        // kebenaran, dan tidak ada kunci yang harus remembering dua tempat.
+        return app(CategoryCache::class)->all();
     }
 
     private function verificationPending(?object $user): bool

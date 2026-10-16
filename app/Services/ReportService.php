@@ -53,8 +53,17 @@ class ReportService
         return DB::transaction(function () use ($reporter, $event, $reason, $description): EventReport {
             $existing = $this->reports->findExisting($event->id, $reporter->id);
 
+            // Laporan ganda dari orang yang sama tidak pernah bisa masuk
+            // database: ada UNIQUE (event_id, reporter_user_id). Mengembalikan
+            // baris lama tanpa memberi tahu membuat orang mengira laporannya
+            // terkirim padahal tidak ada yang berubah, jadi lebih baik
+            // diberi tahu terus terang.
             if ($existing !== null) {
-                return $existing;
+                throw ValidationException::withMessages([
+                    'event' => $existing->isPending()
+                        ? 'Anda sudah melaporkan kegiatan ini. Laporan Anda sedang diproses.'
+                        : 'Anda sudah pernah melaporkan kegiatan ini.',
+                ]);
             }
 
             $report = $this->reports->create($event->id, $reporter->id, $reason, $description);

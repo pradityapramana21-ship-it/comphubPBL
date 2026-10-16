@@ -7,7 +7,6 @@ namespace App\Http\Controllers;
 use App\Enums\VerificationStatus;
 use App\Models\Category;
 use App\Models\User;
-use App\Repositories\Contracts\CategoryRepository;
 use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\ProviderProfileRepository;
 use App\Repositories\Contracts\ReportRepository;
@@ -15,7 +14,6 @@ use App\Support\DateHelper;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * Kaki semua controller.
@@ -95,15 +93,15 @@ abstract class Controller extends BaseController
     /**
      * Daftar kategori untuk menu filter.
      *
-     * @return \Illuminate\Support\Collection<int, Category>
+     * Diambil lewat CategoryCache, bukan Cache::remember biasa: cache
+     * Laravel 13 tidak boleh mengembalikan objek PHP apa pun, jadi model
+     * Eloquent yang disimpan di sana akan rusak saat dibaca.
+     *
+     * @return \Illuminate\Support\Collection<int, object>
      */
     protected function categories()
     {
-        return Cache::remember(
-            'catalog.categories',
-            now()->addMinutes(30),
-            fn () => app(CategoryRepository::class)->allActive(),
-        );
+        return app(\App\Support\CategoryCache::class)->all();
     }
 
     /**

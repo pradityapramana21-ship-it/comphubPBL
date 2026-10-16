@@ -105,19 +105,36 @@ di `resources/views/layouts/app.blade.php`. Tidak perlu `npm run build` sama sek
 
 Setelah `php artisan migrate --seed`:
 
-| Role | Email | Password |
-|---|---|---|
-| Admin | `admin@lokakampus.test` | `password` |
-| Admin 2 | `admin2@lokakampus.test` | `password` |
-| Provider terverifikasi | `bem@lokakampus.test` | `password` |
-| Provider terverifikasi 2 | `himpunan@lokakampus.test` | `password` |
-| Provider menunggu verifikasi | `pending@lokakampus.test` | `password` |
-| Provider ditolak | `ditolak@lokakampus.test` | `password` |
-| User | `user@lokakampus.test` | `password` |
-| User 2 | `user2@lokakampus.test` | `password` |
-| User 3 | `user3@lokakampus.test` | `password` |
+| Peran | Email | Password | Condition |
+|---|---|---|---|
+| Admin | `admin@lomba.test` | `password` | Lihat seluruh antrean |
+| Admin | `admin2@lomba.test` | `password` | Admin kedua, untuk menguji jejak audit |
+| Provider | `bem@lomba.test` | `password` | **Terverifikasi** |
+| Provider | `himpunan@lomba.test` | `password` | **Menunggu verifikasi** |
+| Provider | `salsa@lomba.test` | `password` | **Ditolak**, dengan alasan tersimpan |
+| User | `andi@lomba.test` | `password` | Punya bookmark |
+| User | `budi@lomba.test` | `password` | Punya laporan terbuka |
+| User | `citra@lomba.test` | `password` | Akun biasa |
+| User | `dina@lomba.test` | `password` | **Ditangguhkan** |
 
 Seluruh akun bersifat non-produksi. Jangan pernah memakai kredensial ini di server publik.
+
+### Isi data demo
+
+Data demo sengaja mencakup setiap status, supaya fitur moderasi bisa
+didemokan tanpa membuat data baru:
+
+| Bagian | Isi |
+|---|---|
+| Kategori | Lomba, Webinar, Seminar, Workshop |
+| Kegiatan tayang | 4 kegiatan approved, satu di antaranya tenggatnya besok |
+| Antrean admin | 2 pengajuan pending, 1 di antaranya ditandai otomatis (skor 10) |
+| Contoh ditolak | 1 kegiatan spam yang kena pola "bayar sebelum daftar" dan tautan pemendek (skor 100) |
+| Lainnya | 1 changes_requested, 2 draf, 1 kedaluwarsa, 1 diarsipkan |
+| Jejak | 3 status verifikasi, 3 bookmark, 1 laporan terbuka, 7 entri moderasi, 5 jejak audit |
+
+Angka skor pada data demo dihitung ulang oleh `ModerationService` saat seed,
+jadi tidak pernah berbeda dari apa yang sistemnya benar-benar lakukan.
 
 ---
 

@@ -10,7 +10,7 @@ class UpdateProviderProfileRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        $profile = $this->route('provider');
+        $profile = $this->route()->parameter('provider');
 
         return $profile !== null && $this->user()?->can('update', $profile) === true;
     }

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
@@ -21,6 +22,9 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable(['actor_user_id', 'actor_role', 'action', 'target_type', 'target_id', 'metadata'])]
 class AuditLog extends Model
 {
+    /** @use HasFactory<\Database\Factories\AuditLogFactory> */
+    use HasFactory;
+
     public const UPDATED_AT = null;
 
     protected $table = 'audit_logs';

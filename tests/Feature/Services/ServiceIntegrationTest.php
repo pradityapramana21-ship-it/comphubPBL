@@ -354,8 +354,15 @@ class ServiceIntegrationTest extends TestCase
         $reports->report($this->providerUser, $approved, ReportReason::Spam, 'Tidak relevan');
     }
 
+    /**
+     * Laporan kedua dari orang yang sama tidak boleh membuat baris baru.
+     *
+     * Perilakunya bukan "diam-diam mengembalikan laporan lama": orang
+     * akan mengira laporannya terkirim padahal tidak ada yang berubah.
+     * Jadi service melempar galat validasi, dan baris pertama tetap utuh.
+     */
     #[Test]
-    public function laporan_ganda_mengembalikan_laporan_yang_sama(): void
+    public function laporan_ganda_ditolak_dengan_pesan_yang_jelas(): void
     {
         $this->provider->markVerified($this->admin);
         $events = app(EventService::class);
@@ -367,11 +374,16 @@ class ServiceIntegrationTest extends TestCase
         );
 
         $first = $reports->report($this->plainUser, $approved, ReportReason::Spam, 'laporan pertama');
-        $second = $reports->report($this->plainUser, $approved, ReportReason::Scam, 'laporan kedua');
 
-        $this->assertSame($first->id, $second->id);
+        try {
+            $reports->report($this->plainUser, $approved, ReportReason::Scam, 'laporan kedua');
+            $this->fail('Laporan kedua seharusnya ditolak.');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->assertStringContainsString('sudah', (string) $e->validator->errors()->first('event'));
+        }
+
         $this->assertDatabaseCount('event_reports', 1);
-        $this->assertSame('laporan pertama', $second->description, 'Laporan pertama tidak boleh tertimpa.');
+        $this->assertSame('laporan pertama', $first->fresh()->description, 'Laporan pertama tidak boleh tertimpa.');
     }
 
     #[Test]
