@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\EventMode;
 use App\Enums\EventStatus;
+use App\Enums\ReportStatus;
 use Database\Factories\EventFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
@@ -93,6 +94,18 @@ class Event extends Model
     public function moderationLogs(): HasMany
     {
         return $this->hasMany(ModerationLog::class);
+    }
+
+    /** Laporan yang belum ditangani — dipakai badge di panel admin. */
+    public function openReports(): HasMany
+    {
+        return $this->hasMany(EventReport::class)->where('status', ReportStatus::Open->value);
+    }
+
+    /** Jumlah user yang menyimpan; cache agar kartu tidak perlu query. */
+    public function bookmarkTotal(): int
+    {
+        return (int) ($this->attributes['bookmark_count'] ?? $this->bookmarks()->count());
     }
 
     // ------------------------------------------------------- scope publik
