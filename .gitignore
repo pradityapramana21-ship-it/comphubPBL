@@ -1,0 +1,65 @@
+# ---------------------------------------------------------------------------
+# Dependency
+# ---------------------------------------------------------------------------
+/vendor
+/node_modules
+
+# ---------------------------------------------------------------------------
+# Environment — JANGAN PERNAH commit. Kredensial database, APP_KEY, dan
+# token apa pun yang ada di sini akan bocor ke riwayat Git secara permanen.
+# Panduan §8: "secret hanya di konfigurasi deployment".
+# ---------------------------------------------------------------------------
+.env
+.env.backup
+.env.production
+.env.*.local
+
+# ---------------------------------------------------------------------------
+# Cache & generated
+# ---------------------------------------------------------------------------
+/bootstrap/cache/*.php
+/bootstrap/cache/services.php
+/bootstrap/cache/packages.php
+/public/build
+/public/hot
+/public/storage
+/storage/*.key
+/storage/pail
+/public/fonts-manifest.dev.json
+.phpunit.result.cache
+.phpunit.cache
+.php-cs-fixer.cache
+.phpstan.cache
+/rector.cache
+
+# ---------------------------------------------------------------------------
+# Upload pengguna — Panduan §8: bukti organisasi disimpan DI LUAR webroot.
+# Folder ini tidak boleh masuk Git (berkas bukti memuat data pribadi).
+# Foldernya sendiri tetap ada supaya aplikasi tidak error saat clone baru.
+# ---------------------------------------------------------------------------
+/storage/app/private/uploads/*
+!/storage/app/private/uploads/.gitkeep
+
+# ---------------------------------------------------------------------------
+# Log — bisa memuat data sensitif, jangan pernah dibagikan
+# ---------------------------------------------------------------------------
+*.log
+/storage/logs/*.log
+
+# ---------------------------------------------------------------------------
+# Editor & OS
+# ---------------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea
+/.vscode
+/.zed
+/.cursor
+/.codex
+/.nova
+/_ide_helper.php
+.phpactor.json
+Homestead.json
+Homestead.yaml
+/auth.json
+/.claude/settings.local.json
