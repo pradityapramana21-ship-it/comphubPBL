@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace App\Services\Moderation;
 
+use App\Enums\RuleSeverity;
+
 /**
  * Satu aturan moderasi.
  *
@@ -22,7 +24,7 @@ interface ModerationRule
     public function key(): string;
 
     /** Tingkat keparahan temuan kalau aturan ini menyala. */
-    public function severity(): \App\Enums\RuleSeverity;
+    public function severity(): RuleSeverity;
 
     /**
      * Periksa satu pengajuan.

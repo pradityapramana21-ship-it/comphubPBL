@@ -4,18 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Auth;
 
-use App\DataTransferObjects\CatalogFilter;
 use App\Enums\UserRole;
-use App\Enums\VerificationStatus;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\ProviderRegistrationRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Models\User;
 use App\Services\AuthService;
 use App\Services\ProviderVerificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Illuminate\View\View;
 
 /**
  * Masuk, keluar, dan pendaftaran.
@@ -32,7 +32,7 @@ use Illuminate\Validation\ValidationException;
  */
 class AuthController extends Controller
 {
-    public function showLogin(): \Illuminate\View\View
+    public function showLogin(): View
     {
         return view('auth.login');
     }
@@ -70,7 +70,7 @@ class AuthController extends Controller
 
     // ------------------------------------------------------------ pengguna
 
-    public function showRegister(): \Illuminate\View\View
+    public function showRegister(): View
     {
         return view('auth.register');
     }
@@ -87,12 +87,12 @@ class AuthController extends Controller
         // sini hanya mengulang pekerjaan yang sama.
         return redirect()
             ->route('user.dashboard')
-            ->with('success', 'Selamat datang, '.$user->name.'! Simpan kegiatan yang menarik agar tidak terlewat.');
+            ->with('success', 'Selamat datang, ' . $user->name . '! Simpan kegiatan yang menarik agar tidak terlewat.');
     }
 
     // ------------------------------------------------------------ penyedia
 
-    public function showProviderRegister(): \Illuminate\View\View
+    public function showProviderRegister(): View
     {
         return view('auth.register-provider');
     }
@@ -132,7 +132,7 @@ class AuthController extends Controller
      * dibuka — supaya admin yang menguji tautan lama tidak mendarat di
      * halaman pengguna.
      */
-    private function redirectAfterLogin(LoginRequest $request, \App\Models\User $user): RedirectResponse
+    private function redirectAfterLogin(LoginRequest $request, User $user): RedirectResponse
     {
         $intended = $request->session()->pull('url.intended');
 

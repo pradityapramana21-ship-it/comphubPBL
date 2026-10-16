@@ -426,7 +426,7 @@ class WriteFlowTest extends TestCase
         $published = Event::factory()->published()->forProvider($this->profile)->create();
         EventReport::factory()->forEvent($published, $this->plainUser)->create();
 
-        $this->get('/kegiatan/'.$published->slug)
+        $this->get('/kegiatan/' . $published->slug)
             ->assertOk()
             ->assertDontSee($this->plainUser->email);
     }

@@ -62,7 +62,7 @@ class User extends Authenticatable
         return $this->hasOne(ProviderProfile::class);
     }
 
-        public function bookmarks(): HasMany
+    public function bookmarks(): HasMany
     {
         return $this->hasMany(Bookmark::class);
     }

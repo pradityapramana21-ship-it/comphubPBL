@@ -8,8 +8,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\SaveCategoryRequest;
 use App\Models\Category;
 use App\Repositories\Contracts\CategoryRepository;
+use App\Support\CategoryCache;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CategoryController extends Controller
@@ -64,6 +64,6 @@ class CategoryController extends Controller
 
     private function forgetCategoryCache(): void
     {
-        app(\App\Support\CategoryCache::class)->forget();
+        app(CategoryCache::class)->forget();
     }
 }

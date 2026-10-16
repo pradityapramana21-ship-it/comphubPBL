@@ -6,9 +6,9 @@ namespace App\Http\Controllers\Public;
 
 use App\DataTransferObjects\CatalogFilter;
 use App\Http\Controllers\Controller;
-use App\Models\Event;
 use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\ProviderProfileRepository;
+use Illuminate\View\View;
 
 /**
  * Beranda.
@@ -20,7 +20,7 @@ use App\Repositories\Contracts\ProviderProfileRepository;
  */
 class HomeController extends Controller
 {
-    public function __invoke(EventRepository $events, ProviderProfileRepository $providers): \Illuminate\View\View
+    public function __invoke(EventRepository $events, ProviderProfileRepository $providers): View
     {
         $filter = CatalogFilter::fromQuery([])->withoutDeadlineFilter();
 

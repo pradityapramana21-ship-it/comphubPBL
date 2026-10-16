@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AuditLogController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\EventModerationController;
 use App\Http\Controllers\Admin\ProviderVerificationController;
 use App\Http\Controllers\Admin\ReportReviewController;
 use App\Http\Controllers\Admin\UserManagementController;
-use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\PasswordResetController;
+use App\Http\Controllers\Provider\ProviderDashboardController;
+use App\Http\Controllers\Provider\ProviderEventController;
+use App\Http\Controllers\Provider\ProviderProfileController;
 use App\Http\Controllers\Public\EventCatalogController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\ProviderDirectoryController;
 use App\Http\Controllers\Public\StaticPageController;
-use App\Http\Controllers\Provider\ProviderDashboardController;
-use App\Http\Controllers\Provider\ProviderEventController;
-use App\Http\Controllers\Provider\ProviderProfileController;
 use App\Http\Controllers\User\BookmarkController;
 use App\Http\Controllers\User\ProfileController;
 use App\Http\Controllers\User\ReportController;

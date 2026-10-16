@@ -59,7 +59,7 @@ enum UserRole: string
      */
     public function middleware(): string
     {
-        return 'role:'.$this->value;
+        return 'role:' . $this->value;
     }
 
     /**

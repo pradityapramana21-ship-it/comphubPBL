@@ -76,9 +76,9 @@ class UserFactory extends Factory
     private function uniqueEmail(): string
     {
         return Str::lower(fake()->firstName())
-            .'.'.Str::lower(fake()->lastName())
-            .'.'.Str::lower(Str::random(8))
-            .'@example.test';
+            . '.' . Str::lower(fake()->lastName())
+            . '.' . Str::lower(Str::random(8))
+            . '@example.test';
     }
 
     public function unverified(): static

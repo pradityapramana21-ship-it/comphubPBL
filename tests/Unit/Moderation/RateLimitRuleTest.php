@@ -4,10 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Moderation;
 
+use App\Enums\EventMode;
+use App\Enums\EventStatus;
 use App\Enums\ModerationAction;
+use App\Models\Category;
 use App\Models\Event;
 use App\Repositories\Contracts\ModerationLogRepository;
 use App\Services\Moderation\Rules\RateLimitRule;
+use Illuminate\Support\Facades\DB;
 use PHPUnit\Framework\Attributes\Test;
 
 class RateLimitRuleTest extends ModerationRuleTestCase
@@ -25,20 +29,20 @@ class RateLimitRuleTest extends ModerationRuleTestCase
     private function fakeSubmissions(int $count, int $minutesAgo = 5): void
     {
         $logs = $this->app->make(ModerationLogRepository::class);
-        $category = \App\Models\Category::first();
+        $category = Category::first();
 
         $event = Event::create([
             'provider_profile_id' => $this->provider->id,
             'category_id' => $category->id,
             'title' => 'Kegiatan batching',
-            'slug' => 'batching-'.uniqid(),
+            'slug' => 'batching-' . uniqid(),
             'description' => str_repeat('Deskripsi kegiatan untuk keperluan pengujian batas. ', 3),
             'registration_url' => 'https://pendaftaran.uji.ac.id/batch',
-            'mode' => \App\Enums\EventMode::Online,
+            'mode' => EventMode::Online,
             'event_start_at' => now()->addMonth(),
             'event_end_at' => now()->addMonth()->addDay(),
             'registration_deadline' => now()->addWeek(),
-            'status' => \App\Enums\EventStatus::Pending,
+            'status' => EventStatus::Pending,
             'submitted_at' => now()->subMinutes($minutesAgo),
         ]);
 
@@ -57,7 +61,7 @@ class RateLimitRuleTest extends ModerationRuleTestCase
         // ditulis ulang supaya simulasi "pengajuan lama" benar-benar terlihat
         // oleh jendela waktu di dalam aturan.
         if ($minutesAgo > 0) {
-            \Illuminate\Support\Facades\DB::table('moderation_logs')
+            DB::table('moderation_logs')
                 ->where('event_id', $event->id)
                 ->update(['created_at' => now()->subMinutes($minutesAgo)]);
         }

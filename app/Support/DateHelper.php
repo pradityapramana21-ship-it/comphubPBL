@@ -82,7 +82,16 @@ final class DateHelper
     }
 
     /**
-     * Rentang tanggal yang enak dibaca: "12-14 November 2026".
+     * Rentang tanggal yang enak dibaca.
+     *
+     * Tiga bentuk, tergantung seberapa jauh jaraknya:
+     *   satu hari, jam berbeda : "10 Mei 2026, 09.00-14.30"
+     *   satu bulan              : "10-11 Mei 2026"
+     *   bulan atau tahun beda   : "10 Mei 2026 - 12 Juni 2026"
+     *
+     * Jam SELESAI tetap ditampilkan walaupun acaranya cuma sehari.
+     * Melewatkannya membuat seminar 09.00-14.30 tertulis sebagai
+     * "09.00" saja, dan orang bisa salah datang sejam.
      */
     public function range(\DateTimeInterface $from, \DateTimeInterface $to): string
     {
@@ -90,7 +99,17 @@ final class DateHelper
         $end = $this->local($to);
 
         if ($start->format('Y-m-d') === $end->format('Y-m-d')) {
-            return sprintf('%d %s %s, %s', $start->day, self::MONTHS_LONG[(int) $start->month], $start->year, $start->format('H.i'));
+            $jam = $start->format('H.i') === $end->format('H.i')
+                ? $start->format('H.i')
+                : $start->format('H.i') . '-' . $end->format('H.i');
+
+            return sprintf(
+                '%d %s %s, %s',
+                $start->day,
+                self::MONTHS_LONG[(int) $start->month],
+                $start->year,
+                $jam,
+            );
         }
 
         if ($start->year === $end->year && $start->month === $end->month) {
@@ -103,7 +122,7 @@ final class DateHelper
             );
         }
 
-        return $this->date($from).' - '.$this->date($to);
+        return $this->date($from) . ' - ' . $this->date($to);
     }
 
     /**
@@ -117,8 +136,8 @@ final class DateHelper
             $days === 0 => 'hari ini',
             $days === 1 => 'besok',
             $days === -1 => 'kemarin',
-            $days > 1 => $days.' hari lagi',
-            default => abs($days).' hari lalu',
+            $days > 1 => $days . ' hari lagi',
+            default => abs($days) . ' hari lalu',
         };
     }
 

@@ -27,11 +27,11 @@ class SuspiciousUrlRuleTest extends ModerationRuleTestCase
     public static function suspiciousUrlProvider(): array
     {
         return [
-            'pemendek tautan'  => ['https://bit.ly/xyz123', 'shortener'],
-            'situs tempel'      => ['https://pastebin.com/raw/abc', 'paste_site'],
-            'berkas eksekusi'   => ['https://kampus.ac.id/installer.exe', 'file_extension'],
-            'tanpa https'       => ['http://kampus.ac.id/daftar', 'no_https'],
-            'bukan tautan'      => ['bukan-tautan-sama-sekali', 'invalid'],
+            'pemendek tautan' => ['https://bit.ly/xyz123', 'shortener'],
+            'situs tempel' => ['https://pastebin.com/raw/abc', 'paste_site'],
+            'berkas eksekusi' => ['https://kampus.ac.id/installer.exe', 'file_extension'],
+            'tanpa https' => ['http://kampus.ac.id/daftar', 'no_https'],
+            'bukan tautan' => ['bukan-tautan-sama-sekali', 'invalid'],
         ];
     }
 
@@ -80,7 +80,7 @@ class SuspiciousUrlRuleTest extends ModerationRuleTestCase
             range(1, $limit + 1),
         );
 
-        $description = str_repeat('Kunjungi kami. ', 4).implode(' ', $links);
+        $description = str_repeat('Kunjungi kami. ', 4) . implode(' ', $links);
 
         $result = $this->evaluate(['description' => $description]);
 

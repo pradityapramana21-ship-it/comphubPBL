@@ -3,7 +3,7 @@
 Project Based Learning (PBL) — tim 5 orang.
 Platform katalog kegiatan mahasiswa dengan verifikasi penyelenggara, moderasi berlapis, dan anti-spam otomatis.
 
-> Panduan lengkap: `docs/` · Baseline teknis: Panduan PBL Bab 1–12
+> Baseline teknis: Panduan PBL Bab 1–12 · Dokumen proyek: `docs/` (kerangka, belum berisi)
 
 ---
 
@@ -155,9 +155,8 @@ revenge/
 │   │   └── Eloquent/           Implementasi query PostgreSQL
 │   ├── Services/               Aturan bisnis: moderasi, bookmark, audit
 │   │   └── Moderation/Rules/   Satu file per aturan deteksi spam
-│   ├── Support/                TextNormalizer, SlugGenerator, DateHelper
-│   ├── Console/Commands/       Scheduled: tandai kedaluwarsa, ingatkan tenggat
-│   └── Providers/              Binding repository, peta policy
+│   ├── Support/                TextNormalizer, SlugGenerator, DateHelper, CategoryCache
+│   └── Providers/              Binding repository, peta policy, rate limiter
 ├── config/moderation.php       Bobot skor + threshold anti-spam (bukan hard-coded)
 ├── database/
 │   ├── migrations/             Skema PostgreSQL, FK, CHECK, index
@@ -167,11 +166,28 @@ revenge/
 │   ├── css/  js/  images/      Aset statis (nol build)
 ├── resources/views/            Blade = HTML, dikelompokkan per area role
 ├── storage/app/private/uploads/ Bukti organisasi — DI LUAR webroot (Panduan §8)
+├── routes/console.php          Tugas terjadwal (tandai kedaluwarsa, bersihkan cache)
 ├── tests/
-│   ├── Unit/                   Satu test per aturan moderasi
-│   └── Feature/                Alur per role + keamanan (IDOR, CSRF, SQLi, XSS)
-└── docs/                       SRS, ERD, diagram, test plan, panduan
+│   ├── Unit/Moderation/        Satu test per aturan deteksi spam
+│   ├── Unit/Support/           Normalisasi teks, slug, format tanggal
+│   └── Feature/                Alur per role, render tiap halaman, keamanan (IDOR, CSRF, SQLi)
+└── docs/                       Kerangka dokumentasi (README tiap kelompok, belum berisi)
 ```
+
+---
+
+## Format kode
+
+Gaya kode dijaga oleh [Laravel Pint](https://laravel.com/docs/pint) dan
+dikonfigurasi di `pint.json`.
+
+```bash
+php vendor/bin/pint          # rapikan
+php vendor/bin/pint --test   # hanya memeriksa, tanpa menulis
+```
+
+Berkas bawaan Laravel (`config/`, `public/index.php`, migration `0001_01_01_*`)
+dikecualikan supaya tetap cocok dengan berkas aslinya saat di-upgrade.
 
 ---
 
@@ -191,7 +207,6 @@ Aturan minimum:
 - Review wajib oleh **IT Manager** sebelum merge
 - Tidak ada secret di repo. Kalau bocor, **rotate** dahulu, baru riwayat Git dibersihkan
 
-Rincian: `docs/00-project/`
 
 ---
 
@@ -202,8 +217,11 @@ Rincian: `docs/00-project/`
 | `tests/Unit/Moderation/` | Tiap aturan deteksi spam, satu test per aturan |
 | `tests/Feature/RoutingTest.php` | 63 rute ada, punya nama, dan middleware-nya menahan |
 | `tests/Feature/ViewSmokeTest.php` | Setiap halaman benar-benar dirender untuk tiap role |
-| `tests/Feature/WriteFlowTest.php` | Alur tulis lewat HTTP: draf, pengajuan, moderasi, laporan, bookmark |
+| `tests/Feature/Provider/WriteFlowTest.php` | Alur tulis lewat HTTP: draf, pengajuan, moderasi, laporan, bookmark |
 | `tests/Feature/RuntimeRegressionTest.php` | Cache production, id non-angka, dan rate limiter |
+| `tests/Feature/Auth/AccountFlowTest.php` | Registrasi, keluar, atur ulang sandi, sunting profil |
+| `tests/Feature/Provider/ExpiryTest.php` | Tugas terjadwal dan lapisan kedua kedaluwarsa |
+| `tests/Unit/Support/SupportTest.php` | Normalisasi teks, slug, format tanggal |
 | `tests/Feature/Database/DatabaseSeederTest.php` | Seed jalan dari database kosong dan deterministik |
 | `tests/Feature/Database/FactoryTest.php` | Factory cocok dengan skema database |
 
@@ -250,7 +268,7 @@ php artisan config:clear           # Setelah ubah .env
 
 ## Keputusan arsitektur
 
-Dokumen lengkap di `docs/02-design/`. Ringkas:
+Ringkasan; versi lengkapnya nanti ditulis di `docs/02-design/`:
 
 | Keputusan | Alasan |
 |---|---|
@@ -258,7 +276,7 @@ Dokumen lengkap di `docs/02-design/`. Ringkas:
 | PostgreSQL | Diwajibkan Panduan. Dipakai `TIMESTAMPTZ` + `CHECK` constraint agar integritas ditegakkan database, bukan hanya validasi form. |
 | Blade (HTML) + Bootstrap CDN | Tanpa build step — anggota bisa langsung buka di browser tanpa `npm install`. |
 | Auth manual | `Laravel Breeze` membawa Tailwind + Alpine.js yang bertabrakan dengan pilihan Bootstrap. Auth facade bawaan cukup, dan kontrol penuh atas tampilan. |
-| `changes_requested` sebagai status | Menutup ketidaksesuaian antara Panduan §4.1 (admin bisa "minta perbaikan") dan §7.3 (tabel status tidak punya status tersebut). Tercatat di `docs/00-project/change-log.md`. |
+| `changes_requested` sebagai status | Menutup ketidaksesuaian antara Panduan §4.1 (admin bisa "minta perbaikan") dan §7.3 (tabel status tidak punya status tersebut). Tercatat di komentar `EventStatus`. |
 | Tanpa auto-publish | Panduan §7.4: jangan auto-publish untuk akun tanpa rekam jejak. Skor moderasi hanya menentukan **prioritas antrean**; keputusan approve/reject selalu oleh admin. |
 
 ---
@@ -273,4 +291,4 @@ Dokumen lengkap di `docs/02-design/`. Ringkas:
 | UI/UX Designer | Alur, prototipe, design tokens, uji usability |
 | Dokumentasi & QA | SRS, ERD, diagram, test plan, bukti pengujian, laporan |
 
-Matriks rinci: `docs/00-project/raci-matrix.md`
+Matriks rinci perlu ditulis di `docs/00-project/raci-matrix.md`

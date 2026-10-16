@@ -25,10 +25,10 @@ class ContactLeakRuleTest extends ModerationRuleTestCase
     public static function contactProvider(): array
     {
         return [
-            'nomor hp'    => ['Hubungi 081234567890 untuk pendaftaran', 'whatsapp'],
-            'telepon'     => ['Telepon 081234567890 ASAP', 'phone_generic'],
-            'telegram'    => ['Detail di t.me/bemkampus', 'telegram'],
-            'email'       => ['Kirim ke secretive@contoh.test', 'email'],
+            'nomor hp' => ['Hubungi 081234567890 untuk pendaftaran', 'whatsapp'],
+            'telepon' => ['Telepon 081234567890 ASAP', 'phone_generic'],
+            'telegram' => ['Detail di t.me/bemkampus', 'telegram'],
+            'email' => ['Kirim ke secretive@contoh.test', 'email'],
         ];
     }
 

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use Database\Factories\AuditLogFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Model;
 #[Fillable(['actor_user_id', 'actor_role', 'action', 'target_type', 'target_id', 'metadata'])]
 class AuditLog extends Model
 {
-    /** @use HasFactory<\Database\Factories\AuditLogFactory> */
+    /** @use HasFactory<AuditLogFactory> */
     use HasFactory;
 
     public const UPDATED_AT = null;
@@ -60,6 +61,6 @@ class AuditLog extends Model
 
         return $this->target_id === null
             ? ($type !== '' ? $type : '—')
-            : $type.' #'.$this->target_id;
+            : $type . ' #' . $this->target_id;
     }
 }

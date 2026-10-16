@@ -111,7 +111,7 @@ class ProviderProfile extends Model
         });
     }
 
-        // ----------------------------------------------------------- helper
+    // ----------------------------------------------------------- helper
 
     public function isVerified(): bool
     {

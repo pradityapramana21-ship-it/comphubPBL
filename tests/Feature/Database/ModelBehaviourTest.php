@@ -14,8 +14,8 @@ use App\Models\Category;
 use App\Models\Event;
 use App\Models\ProviderProfile;
 use App\Models\User;
+use App\Services\BookmarkService;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -90,7 +90,7 @@ class ModelBehaviourTest extends TestCase
             'provider_profile_id' => $this->provider->id,
             'category_id' => $this->category->id,
             'title' => 'Lomba Profesional',
-            'slug' => 'lomba-profesional-'.uniqid(),
+            'slug' => 'lomba-profesional-' . uniqid(),
             'description' => 'Deskripsi sufficiently panjang untuk lolos validasi.',
             'registration_url' => 'https://daftar.test/lomba',
             'mode' => EventMode::Offline,
@@ -153,7 +153,7 @@ class ModelBehaviourTest extends TestCase
     }
 
     #[Test]
-    public function scopeOwnedBy_membatasi_kegiatan_per_penyedia(): void
+    public function scope_owned_by_membatasi_kegiatan_per_penyedia(): void
     {
         $mine = $this->makeEvent(['title' => 'Milik Saya']);
         $theirs = Event::create([
@@ -178,7 +178,7 @@ class ModelBehaviourTest extends TestCase
     }
 
     #[Test]
-    public function scopeInReviewQueue_hanya_menampilkan_yang_menunggu(): void
+    public function scope_in_review_queue_hanya_menampilkan_yang_menunggu(): void
     {
         $pending = $this->makeEvent(['status' => EventStatus::Pending, 'published_at' => null, 'slug' => 'antri-1']);
         $changes = $this->makeEvent(['status' => EventStatus::ChangesRequested, 'published_at' => null, 'slug' => 'antri-2']);
@@ -193,7 +193,7 @@ class ModelBehaviourTest extends TestCase
     }
 
     #[Test]
-    public function scopePublished_tidak_pernah_membocorkan_draft(): void
+    public function scope_published_tidak_pernah_membocorkan_draft(): void
     {
         $this->makeEvent(['status' => EventStatus::Draft, 'published_at' => null, 'slug' => 'rahasia-1']);
         $this->makeEvent(['status' => EventStatus::Pending, 'published_at' => null, 'slug' => 'rahasia-2']);
@@ -206,7 +206,7 @@ class ModelBehaviourTest extends TestCase
     }
 
     #[Test]
-    public function scopeActive_membuang_kegiatan_yang_tenggatnya_lewat(): void
+    public function scope_active_membuang_kegiatan_yang_tenggatnya_lewat(): void
     {
         $this->makeEvent(['slug' => 'masih-buka', 'registration_deadline' => now()->addDays(2)]);
         $this->makeEvent(['slug' => 'sudah-lewat', 'registration_deadline' => now()->subDay()]);
@@ -229,7 +229,7 @@ class ModelBehaviourTest extends TestCase
     }
 
     #[Test]
-    public function scopeSorted_menolak_kolom_asing_dari_input_pengguna(): void
+    public function scope_sorted_menolak_kolom_asing_dari_input_pengguna(): void
     {
         $this->makeEvent(['slug' => 'a']);
         $this->makeEvent(['slug' => 'b']);
@@ -311,7 +311,7 @@ class ModelBehaviourTest extends TestCase
         // produksi yang sekaligus-maintain kolom cache bookmark_count.
         // Menyisipkan langsung ke tabel hanya mengisi tabelnya, sehingga
         // savedCount() yang membaca cache akan tetap melaporkan 0.
-        $bookmarks = $this->app->make(\App\Services\BookmarkService::class);
+        $bookmarks = $this->app->make(BookmarkService::class);
 
         $this->assertTrue($bookmarks->add($this->normalUser, $event));
         $this->assertTrue($this->normalUser->bookmarkedEvents()->where('events.id', $event->id)->exists());

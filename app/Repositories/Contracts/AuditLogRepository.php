@@ -6,6 +6,7 @@ namespace App\Repositories\Contracts;
 
 use App\Models\AuditLog;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 /**
  * Jejak aksi sensitif.
@@ -26,9 +27,9 @@ interface AuditLogRepository
 
     public function paginateForAdmin(array $filters = [], int $perPage = 25): LengthAwarePaginator;
 
-    public function forTarget(string $targetType, int $targetId, int $limit = 50): \Illuminate\Support\Collection;
+    public function forTarget(string $targetType, int $targetId, int $limit = 50): Collection;
 
-    public function forActor(int $actorUserId, int $limit = 50): \Illuminate\Support\Collection;
+    public function forActor(int $actorUserId, int $limit = 50): Collection;
 
     public function countAll(): int;
 }

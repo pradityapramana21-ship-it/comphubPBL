@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\ModerationLogRepository;
 use App\Services\Moderation\ModerationContext;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
@@ -71,7 +72,7 @@ class EventService
             ]);
         }
 
-        return DB::transaction(function () use ($provider, $event): Event {
+        return DB::transaction(function () use ($event): Event {
             $context = $this->contextFor($event);
             $verdict = $this->moderation->inspect($context);
 
@@ -290,7 +291,7 @@ class EventService
      * Riwayat keputusan untuk satu kegiatan, dipakai di panel admin dan
      * dashboard penyedia.
      */
-    public function historyFor(Event $event): \Illuminate\Support\Collection
+    public function historyFor(Event $event): Collection
     {
         return $this->moderationLogs->forEvent($event->id);
     }

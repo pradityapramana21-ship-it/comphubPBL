@@ -4,12 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repositories\Eloquent;
 
-use App\Enums\VerificationStatus;
 use App\Models\ProviderProfile;
 use App\Repositories\Contracts\ProviderProfileRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Str;
 
 class EloquentProviderProfileRepository implements ProviderProfileRepository
 {

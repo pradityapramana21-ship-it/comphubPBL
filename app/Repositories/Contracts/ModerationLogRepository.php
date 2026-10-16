@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Repositories\Contracts;
 
 use App\Enums\ModerationAction;
-use App\Models\Event;
 use App\Models\ModerationLog;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 interface ModerationLogRepository
 {
@@ -26,7 +26,7 @@ interface ModerationLogRepository
     ): ModerationLog;
 
     /** Riwayat satu kegiatan, terbaru di atas. */
-    public function forEvent(int $eventId, int $limit = 50): \Illuminate\Support\Collection;
+    public function forEvent(int $eventId, int $limit = 50): Collection;
 
     public function latestForEvent(int $eventId): ?ModerationLog;
 

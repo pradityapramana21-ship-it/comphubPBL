@@ -77,12 +77,12 @@ class RoutingTest extends TestCase
         return Event::create([
             'provider_profile_id' => $this->profile->id,
             'category_id' => $category->id,
-            'title' => 'Lomba Tim Routed'.$slug,
+            'title' => 'Lomba Tim Routed' . $slug,
             'slug' => $slug,
             'description' => str_repeat('Deskripsi kegiatan yang panjang untuk lolos validasi. ', 4),
-            'registration_url' => 'https://pendaftaran.test/'.$slug,
+            'registration_url' => 'https://pendaftaran.test/' . $slug,
             'mode' => EventMode::Online,
-            'platform_url' => 'https://meet.test/'.$slug,
+            'platform_url' => 'https://meet.test/' . $slug,
             'event_start_at' => now()->addMonth(),
             'event_end_at' => now()->addMonth()->addDay(),
             'registration_deadline' => now()->addWeek(),
@@ -200,7 +200,7 @@ class RoutingTest extends TestCase
     #[Test]
     public function draf_tidak_bisa_diakses_lewat_url_publik(): void
     {
-        $this->get('/kegiatan/'.$this->draft->slug)->assertNotFound();
+        $this->get('/kegiatan/' . $this->draft->slug)->assertNotFound();
     }
 
     #[Test]
@@ -209,11 +209,11 @@ class RoutingTest extends TestCase
         // Draf sendiri boleh disunting. Kegiatan yang sudah tayang TIDAK,
         // dan itu diperiksa EventPolicy::update().
         $this->actingAs($this->providerUser)
-            ->get('/dasbor/penyelenggara/kegiatan/'.$this->draft->id.'/sunting')
+            ->get('/dasbor/penyelenggara/kegiatan/' . $this->draft->id . '/sunting')
             ->assertSuccessful();
 
         $this->actingAs($this->providerUser)
-            ->get('/dasbor/penyelenggara/kegiatan/'.$this->published->id.'/sunting')
+            ->get('/dasbor/penyelenggara/kegiatan/' . $this->published->id . '/sunting')
             ->assertForbidden();
 
         // ID yang tidak ada milik siapa pun -> 404, bukan 403.
@@ -237,11 +237,11 @@ class RoutingTest extends TestCase
         $otherProfile->markVerified($this->admin);
 
         $category = Category::first();
-        $rahasia = $this->makeEvent($category, 'rahasia-'.uniqid(), EventStatus::Draft, false);
+        $rahasia = $this->makeEvent($category, 'rahasia-' . uniqid(), EventStatus::Draft, false);
         $rahasia->forceFill(['provider_profile_id' => $otherProfile->id])->save();
 
         $this->actingAs($this->providerUser)
-            ->get('/dasbor/penyelenggara/kegiatan/'.$rahasia->id.'/sunting')
+            ->get('/dasbor/penyelenggara/kegiatan/' . $rahasia->id . '/sunting')
             ->assertNotFound();
     }
 
@@ -281,7 +281,7 @@ class RoutingTest extends TestCase
 
         $before = $this->published->view_count;
 
-        $this->get('/kegiatan/'.$this->published->slug)->assertOk();
+        $this->get('/kegiatan/' . $this->published->slug)->assertOk();
 
         $this->assertSame($before + 1, $this->published->fresh()->view_count);
     }
@@ -301,16 +301,16 @@ class RoutingTest extends TestCase
 
         $before = $this->published->view_count;
 
-        $this->get('/kegiatan/'.$this->published->slug)->assertOk();
-        $this->get('/kegiatan/'.$this->published->slug)->assertOk();
-        $this->get('/kegiatan/'.$this->published->slug)->assertOk();
+        $this->get('/kegiatan/' . $this->published->slug)->assertOk();
+        $this->get('/kegiatan/' . $this->published->slug)->assertOk();
+        $this->get('/kegiatan/' . $this->published->slug)->assertOk();
 
         $this->assertSame($before + 1, $this->published->fresh()->view_count);
     }
 
     private function resetViewLimiter(): void
     {
-        RateLimiter::clear('event-view:127.0.0.1:'.$this->published->id);
+        RateLimiter::clear('event-view:127.0.0.1:' . $this->published->id);
     }
 
     #[Test]

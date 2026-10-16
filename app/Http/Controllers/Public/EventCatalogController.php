@@ -10,9 +10,10 @@ use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Repositories\Contracts\EventRepository;
 use App\Services\BookmarkService;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 /**
  * Katalog kegiatan: daftar dan detail.
@@ -23,7 +24,7 @@ use Illuminate\Http\RedirectResponse;
  */
 class EventCatalogController extends Controller
 {
-    public function index(Request $request, EventRepository $events): \Illuminate\View\View
+    public function index(Request $request, EventRepository $events): View
     {
         $filter = CatalogFilter::fromQuery($request->query());
 
@@ -45,7 +46,7 @@ class EventCatalogController extends Controller
      * memberi apa-apa — query-nya sendiri sudah dibatasi status
      * (Panduan §6.5, TC-USER-02).
      */
-    public function show(Request $request, Event $event, EventRepository $events, BookmarkService $bookmarks): \Illuminate\View\View
+    public function show(Request $request, Event $event, EventRepository $events, BookmarkService $bookmarks): View
     {
         // Binding berdasarkan slug akan menemukan kegiatan apa pun —
         // termasuk draf milik orang lain. Karena itu statusnya diperiksa

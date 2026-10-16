@@ -5,10 +5,8 @@ declare(strict_types=1);
 namespace Tests\Feature;
 
 use App\Models\Category;
-use App\Models\Event;
 use App\Models\ProviderProfile;
 use App\Models\User;
-use App\Enums\UserRole;
 use App\Support\CategoryCache;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\RateLimiter;
@@ -242,4 +240,3 @@ class RuntimeRegressionTest extends TestCase
         $this->assertContains(429, $statuses, 'Batas volume tidak berlaku untuk permintaan tanpa email.');
     }
 }
-

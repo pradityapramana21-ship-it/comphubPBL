@@ -7,7 +7,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\ProviderDecisionRequest;
 use App\Models\ProviderProfile;
-use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\ProviderProfileRepository;
 use App\Services\ProviderVerificationService;
 use Illuminate\Http\RedirectResponse;

@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Moderation;
 
-use App\Services\Moderation\Rules\BlockedKeywordRule;
 use App\Services\Moderation\RuleResult;
+use App\Services\Moderation\Rules\BlockedKeywordRule;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 
@@ -26,12 +26,12 @@ class BlockedKeywordRuleTest extends ModerationRuleTestCase
     public static function blockedWordProvider(): array
     {
         return [
-            'kata utuh'      => ['Lomba coding dengan judol tiap malam'],
-            'huruf besar'    => ['Pendaftaran LOMBA CODING JUDOL'],
-            'leetspeak'      => ['Lomba dengan jud0l dan t0g3l'],
+            'kata utuh' => ['Lomba coding dengan judol tiap malam'],
+            'huruf besar' => ['Pendaftaran LOMBA CODING JUDOL'],
+            'leetspeak' => ['Lomba dengan jud0l dan t0g3l'],
             'huruf berulang' => ['juuddolll di deskripsi'],
-            'frasa terlarang'=> ['Info casino di judul'],
-            'pinjol'         => ['Program bantuan pinjol untuk mahasiswa'],
+            'frasa terlarang' => ['Info casino di judul'],
+            'pinjol' => ['Program bantuan pinjol untuk mahasiswa'],
         ];
     }
 

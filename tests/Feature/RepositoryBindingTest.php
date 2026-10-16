@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\DataTransferObjects\CatalogFilter;
 use App\Enums\EventMode;
 use App\Enums\EventStatus;
 use App\Enums\ReportReason;
 use App\Enums\UserRole;
-use App\Enums\VerificationStatus;
 use App\Models\Category;
 use App\Models\Event;
+use App\Models\EventReport;
 use App\Models\ProviderProfile;
 use App\Models\User;
 use App\Policies\EventPolicy;
@@ -72,7 +73,7 @@ class RepositoryBindingTest extends TestCase
         $expected = [
             Event::class => EventPolicy::class,
             ProviderProfile::class => ProviderProfilePolicy::class,
-            \App\Models\EventReport::class => EventReportPolicy::class,
+            EventReport::class => EventReportPolicy::class,
             User::class => UserPolicy::class,
         ];
 
@@ -161,7 +162,7 @@ class RepositoryBindingTest extends TestCase
             $this->rawEvent($profile->id, $category->id, $status);
         }
 
-        $filter = \App\DataTransferObjects\CatalogFilter::fromQuery([]);
+        $filter = CatalogFilter::fromQuery([]);
 
         $visible = $repo->paginatePublicCatalog($filter)
             ->getCollection()
@@ -174,8 +175,8 @@ class RepositoryBindingTest extends TestCase
     #[Test]
     public function parameter_aneh_dari_query_string_ditolak_dengan_tenang(): void
     {
-        $filter = \App\DataTransferObjects\CatalogFilter::fromQuery([
-            'sort' => "published_at; DROP TABLE events; --",
+        $filter = CatalogFilter::fromQuery([
+            'sort' => 'published_at; DROP TABLE events; --',
             'per_page' => '99999',
             'category' => '-5',
             'from' => 'bukan-tanggal',
@@ -256,22 +257,22 @@ class RepositoryBindingTest extends TestCase
         // oleh events_published_check.
         $status ??= EventStatus::Approved;
 
-        $provider = $this->user('owner-'.uniqid().'@test', UserRole::Provider);
+        $provider = $this->user('owner-' . uniqid() . '@test', UserRole::Provider);
         $profile = ProviderProfile::create([
             'user_id' => $provider->id,
             'organization_name' => 'BEM Repo',
             'campus_name' => 'Kampus A',
             'official_email' => 'repo@a.test',
         ]);
-        $profile->markVerified(User::create(['name' => 'V', 'email' => 'v'.uniqid().'@test', 'password' => 'x', 'role' => UserRole::Admin]));
+        $profile->markVerified(User::create(['name' => 'V', 'email' => 'v' . uniqid() . '@test', 'password' => 'x', 'role' => UserRole::Admin]));
 
         $category = Category::first() ?? Category::create(['name' => 'Lomba', 'slug' => 'lomba']);
 
         return Event::create([
             'provider_profile_id' => $profile->id,
             'category_id' => $category->id,
-            'title' => 'Lomba Repo '.uniqid(),
-            'slug' => 'lomba-repo-'.uniqid(),
+            'title' => 'Lomba Repo ' . uniqid(),
+            'slug' => 'lomba-repo-' . uniqid(),
             'description' => 'Deskripsi yang cukup panjang untuk lolos constraint database.',
             'registration_url' => 'https://daftar.test/x',
             'mode' => EventMode::Online,
@@ -288,8 +289,8 @@ class RepositoryBindingTest extends TestCase
         Event::create([
             'provider_profile_id' => $providerId,
             'category_id' => $categoryId,
-            'title' => 'Kegiatan Status '.$status,
-            'slug' => 'status-'.$status.'-'.uniqid(),
+            'title' => 'Kegiatan Status ' . $status,
+            'slug' => 'status-' . $status . '-' . uniqid(),
             'description' => 'Deskripsi yang cukup panjang untuk lolos constraint database.',
             'registration_url' => 'https://daftar.test/x',
             'mode' => EventMode::Online,

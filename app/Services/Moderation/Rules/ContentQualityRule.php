@@ -71,7 +71,7 @@ class ContentQualityRule implements ModerationRule
             ruleKey: $this->key(),
             severity: $this->severity(),
             score: (int) config('moderation.weights.content_quality', 10),
-            reason: 'Informasi kegiatan belum lengkap: '.implode('; ', $problems).'.',
+            reason: 'Informasi kegiatan belum lengkap: ' . implode('; ', $problems) . '.',
             metadata: [
                 'title_chars' => $titleChars,
                 'title_words' => $titleWords,

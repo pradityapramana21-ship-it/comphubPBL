@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\DataTransferObjects\CatalogFilter;
 use App\Enums\VerificationStatus;
-use App\Models\Category;
 use App\Models\User;
 use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\ProviderProfileRepository;
 use App\Repositories\Contracts\ReportRepository;
+use App\Support\CategoryCache;
 use App\Support\DateHelper;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Routing\Controller as BaseController;
+use Illuminate\Support\Collection;
 
 /**
  * Kaki semua controller.
@@ -80,7 +82,7 @@ abstract class Controller extends BaseController
                 ? app(EventRepository::class)
                     ->paginateForProvider(
                         $user->providerProfile->id,
-                        \App\DataTransferObjects\CatalogFilter::fromQuery([])->withoutDeadlineFilter(),
+                        CatalogFilter::fromQuery([])->withoutDeadlineFilter(),
                     )->total()
                 : 0,
             'verification' => $user->isProvider() && $user->providerProfile?->verification_status !== VerificationStatus::Verified
@@ -97,11 +99,11 @@ abstract class Controller extends BaseController
      * Laravel 13 tidak boleh mengembalikan objek PHP apa pun, jadi model
      * Eloquent yang disimpan di sana akan rusak saat dibaca.
      *
-     * @return \Illuminate\Support\Collection<int, object>
+     * @return Collection<int, object>
      */
     protected function categories()
     {
-        return app(\App\Support\CategoryCache::class)->all();
+        return app(CategoryCache::class)->all();
     }
 
     /**

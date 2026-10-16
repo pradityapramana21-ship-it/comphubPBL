@@ -88,6 +88,6 @@ final class SlugGenerator
         $room = self::MAX_LENGTH - mb_strlen((string) $suffix) - 1;
         $trimmed = mb_substr($base, 0, max(10, $room));
 
-        return $trimmed.'-'.$suffix;
+        return $trimmed . '-' . $suffix;
     }
 }

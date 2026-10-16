@@ -7,6 +7,7 @@ namespace App\Repositories\Contracts;
 use App\DataTransferObjects\CatalogFilter;
 use App\Models\Event;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 
 interface EventRepository
 {
@@ -55,7 +56,7 @@ interface EventRepository
      * Kandidat duplikat: judul mirip pada provider yang sama dan tanggal
      * yang berdekatan. Dipakai aturan DuplicateEventRule.
      *
-     * @return \Illuminate\Support\Collection<int, Event>
+     * @return Collection<int, Event>
      */
     public function findPossibleDuplicates(int $providerProfileId, string $title, \DateTimeInterface $startDate): iterable;
 

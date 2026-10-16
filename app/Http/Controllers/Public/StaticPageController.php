@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use Illuminate\View\View;
 
 /**
  * Halaman statis: tentang, kebijakan moderasi, panduan penyelenggara.
@@ -16,7 +17,7 @@ use App\Http\Controllers\Controller;
  */
 class StaticPageController extends Controller
 {
-    public function about(): \Illuminate\View\View
+    public function about(): View
     {
         return view('public.pages.about');
     }
@@ -28,7 +29,7 @@ class StaticPageController extends Controller
      * dokumentasi internal: memuat aturan yang benar-benar dipakai
      * config/moderation.php, lengkap dengan ambangnya.
      */
-    public function moderationPolicy(): \Illuminate\View\View
+    public function moderationPolicy(): View
     {
         return view('public.pages.moderation', [
             'thresholds' => config('moderation.thresholds'),
@@ -39,17 +40,17 @@ class StaticPageController extends Controller
     }
 
     /** Panduan bagi organisasi yang ingin mengiklankan kegiatan. */
-    public function providerGuide(): \Illuminate\View\View
+    public function providerGuide(): View
     {
         return view('public.pages.provider-guide');
     }
 
-    public function privacy(): \Illuminate\View\View
+    public function privacy(): View
     {
         return view('public.pages.privacy');
     }
 
-    public function contact(): \Illuminate\View\View
+    public function contact(): View
     {
         return view('public.pages.contact');
     }

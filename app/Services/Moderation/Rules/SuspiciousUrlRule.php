@@ -53,16 +53,19 @@ class SuspiciousUrlRule implements ModerationRule
 
             if ($host !== '' && in_array($host, $shorteners, true)) {
                 $findings[] = ['type' => 'shortener', 'url' => $url];
+
                 continue;
             }
 
             if ($host !== '' && in_array($host, $pasteSites, true)) {
                 $findings[] = ['type' => 'paste_site', 'url' => $url];
+
                 continue;
             }
 
-            if ($path !== '' && preg_match('/\.('.implode('|', array_map('preg_quote', $badExtensions)).')$/i', $path) === 1) {
+            if ($path !== '' && preg_match('/\.(' . implode('|', array_map('preg_quote', $badExtensions)) . ')$/i', $path) === 1) {
                 $findings[] = ['type' => 'file_extension', 'url' => $url];
+
                 continue;
             }
 
@@ -72,6 +75,7 @@ class SuspiciousUrlRule implements ModerationRule
             // pernah terjangkau.
             if ($scheme === '' || $host === '') {
                 $findings[] = ['type' => 'invalid', 'url' => $url];
+
                 continue;
             }
 
@@ -121,7 +125,7 @@ class SuspiciousUrlRule implements ModerationRule
                 : sprintf('%s: %s', $label, (string) $finding['url']);
         }, $findings);
 
-        return 'Tautan bermasalah — '.implode('; ', $parts).'.';
+        return 'Tautan bermasalah — ' . implode('; ', $parts) . '.';
     }
 
     /**

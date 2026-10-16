@@ -114,7 +114,7 @@ class AccountFlowTest extends TestCase
         Storage::disk('local')->assertExists($profile->verification_document_path);
 
         $this->assertStringNotContainsString(
-            DIRECTORY_SEPARATOR.'public'.DIRECTORY_SEPARATOR,
+            DIRECTORY_SEPARATOR . 'public' . DIRECTORY_SEPARATOR,
             Storage::disk('local')->path(''),
             'Disk bukti organisasi tidak boleh berada di dalam folder publik.',
         );

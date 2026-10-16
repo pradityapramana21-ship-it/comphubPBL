@@ -91,16 +91,16 @@ class BlockedKeywordRule implements ModerationRule
     {
         $parts = array_map(static function (array $match): string {
             return $match['type'] === 'kata'
-                ? 'kata terlarang "'.$match['value'].'"'
-                : 'pola "'.$match['label'].'"';
+                ? 'kata terlarang "' . $match['value'] . '"'
+                : 'pola "' . $match['label'] . '"';
         }, $matches);
 
         // Admin hanya perlu tiga, sisanya cukup tahu jumlahnya.
         $shown = array_slice($parts, 0, 3);
         $extra = count($parts) - count($shown);
 
-        return 'Terdeteksi '.implode(', ', $shown)
-            .($extra > 0 ? " (dan {$extra} lagi)" : '')
-            .'. Pengumuman kegiatan kampus tidak boleh memuat ini.';
+        return 'Terdeteksi ' . implode(', ', $shown)
+            . ($extra > 0 ? " (dan {$extra} lagi)" : '')
+            . '. Pengumuman kegiatan kampus tidak boleh memuat ini.';
     }
 }

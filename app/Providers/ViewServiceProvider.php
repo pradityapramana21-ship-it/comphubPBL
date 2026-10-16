@@ -4,14 +4,15 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\DataTransferObjects\CatalogFilter;
 use App\Enums\VerificationStatus;
-use App\Models\Category;
 use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\ProviderProfileRepository;
 use App\Repositories\Contracts\ReportRepository;
 use App\Support\CategoryCache;
 use App\Support\DateHelper;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\View;
@@ -53,7 +54,7 @@ class ViewServiceProvider extends ServiceProvider
         });
     }
 
-    /** @return \Illuminate\Support\Collection<int, object> */
+    /** @return Collection<int, object> */
     private function categories()
     {
         // Cache yang sama dengan yang dipakai controller: satu sumber
@@ -108,7 +109,7 @@ class ViewServiceProvider extends ServiceProvider
 
             return ['saved' => $user->bookmarks()->count(), 'providerEvents' => 0, 'reports' => 0, 'reviewQueue' => 0];
         } catch (\Throwable $e) {
-            Log::warning('Gagal menghitung lencana navigasi: '.$e->getMessage());
+            Log::warning('Gagal menghitung lencana navigasi: ' . $e->getMessage());
 
             return $zero;
         }
@@ -122,7 +123,7 @@ class ViewServiceProvider extends ServiceProvider
             fn (): int => app(EventRepository::class)
                 ->paginateForProvider(
                     $providerProfileId,
-                    \App\DataTransferObjects\CatalogFilter::fromQuery([])->withoutDeadlineFilter(),
+                    CatalogFilter::fromQuery([])->withoutDeadlineFilter(),
                 )->total(),
         );
     }

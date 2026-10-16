@@ -96,13 +96,13 @@ class ReportService
     public function withdraw(User $reporter, EventReport $report): EventReport
     {
         if ($report->reporter_user_id !== $reporter->id) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'report' => 'Anda hanya dapat menarik laporan milik Anda sendiri.',
             ]);
         }
 
         if (! $report->isPending()) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'report' => 'Laporan yang sudah diproses tidak bisa ditarik.',
             ]);
         }
@@ -119,7 +119,7 @@ class ReportService
         ?string $note,
     ): EventReport {
         if (! $report->status->canTransitionTo($target)) {
-            throw \Illuminate\Validation\ValidationException::withMessages([
+            throw ValidationException::withMessages([
                 'status' => sprintf(
                     'Laporan berstatus "%s" tidak bisa diubah menjadi "%s".',
                     $report->status->label(),

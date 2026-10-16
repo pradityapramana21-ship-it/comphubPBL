@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Enums\ReportReason;
 use App\Enums\ReportStatus;
+use Database\Factories\EventReportFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -25,7 +26,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class EventReport extends Model
 {
-    /** @use HasFactory<\Database\Factories\EventReportFactory> */
+    /** @use HasFactory<EventReportFactory> */
     use HasFactory;
 
     /**

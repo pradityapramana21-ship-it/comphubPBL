@@ -95,6 +95,7 @@ class EloquentAuditLogRepository implements AuditLogRepository
         foreach ($metadata as $key => $value) {
             if (is_string($key) && in_array(strtolower($key), self::FORBIDDEN_KEYS, true)) {
                 $clean[$key] = '[disembunyikan]';
+
                 continue;
             }
 

@@ -11,7 +11,6 @@ use App\Models\User;
 use App\Repositories\Contracts\EventRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 
 class EloquentEventRepository implements EventRepository
 {

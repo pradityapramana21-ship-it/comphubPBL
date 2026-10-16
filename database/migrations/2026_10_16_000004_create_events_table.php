@@ -78,16 +78,16 @@ return new class extends Migration
              CHECK (mode IN ('online','offline','hybrid'))"
         );
         DB::statement(
-            "ALTER TABLE events ADD CONSTRAINT events_risk_score_check
-             CHECK (risk_score >= 0 AND risk_score <= 100)"
+            'ALTER TABLE events ADD CONSTRAINT events_risk_score_check
+             CHECK (risk_score >= 0 AND risk_score <= 100)'
         );
         DB::statement(
-            "ALTER TABLE events ADD CONSTRAINT events_time_order_check
-             CHECK (event_end_at >= event_start_at)"
+            'ALTER TABLE events ADD CONSTRAINT events_time_order_check
+             CHECK (event_end_at >= event_start_at)'
         );
         DB::statement(
-            "ALTER TABLE events ADD CONSTRAINT events_deadline_check
-             CHECK (registration_deadline <= event_start_at)"
+            'ALTER TABLE events ADD CONSTRAINT events_deadline_check
+             CHECK (registration_deadline <= event_start_at)'
         );
         DB::statement(
             "ALTER TABLE events ADD CONSTRAINT events_location_check

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureProviderIsVerified;
 use App\Http\Middleware\EnsureRole;
@@ -8,11 +10,12 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
-        web: __DIR__.'/../routes/web.php',
-        commands: __DIR__.'/../routes/console.php',
+        web: __DIR__ . '/../routes/web.php',
+        commands: __DIR__ . '/../routes/console.php',
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
@@ -62,7 +65,28 @@ return Application::configure(basePath: dirname(__DIR__))
             EnsureAccountIsActive::class,
         ]);
 
-        $middleware->trustProxies(at: '*');
+        /*
+        |--------------------------------------------------------------------------
+        | Proxy
+        |--------------------------------------------------------------------------
+        |
+        | Nilai '*' berarti SEMUA proxy dipercaya, dan itu berbahaya di
+        | server publik: siapa pun bisa mengarang X-Forwarded-For, lalu
+        | seluruh rate limiter berbasis alamat IP (login, laporan,
+        | bookmark) bisa dilewati tanpa jejak.
+        |
+        | Karena itu nilainya diambil dari environment. Di produksi, isi
+        | TRUSTED_PROXIES dengan IP proxy yang sebenarnya. Di lokal,
+        | biarkan kosong supaya alamat IP asli yang dipakai.
+        |
+        */
+        $trustedProxies = env('TRUSTED_PROXIES', '');
+
+        if ($trustedProxies !== '') {
+            $middleware->trustProxies(
+                at: array_filter(array_map('trim', explode(',', $trustedProxies))),
+            );
+        }
 
         $middleware->preventRequestsDuringMaintenance();
 
@@ -98,7 +122,7 @@ return Application::configure(basePath: dirname(__DIR__))
         | Halaman lain memakai view di resources/views/errors/.
         |
         */
-        $exceptions->render(function (\Illuminate\Http\Request $request, \Illuminate\Validation\ValidationException $e) {
+        $exceptions->render(function (Request $request, ValidationException $e) {
             if ($request->expectsJson()) {
                 return response()->json([
                     'message' => $e->getMessage(),

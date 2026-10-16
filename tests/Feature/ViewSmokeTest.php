@@ -146,14 +146,14 @@ class ViewSmokeTest extends TestCase
     #[Test]
     public function detail_kegiatan_bisa_dirender(): void
     {
-        $this->get('/kegiatan/'.$this->published->slug)->assertOk();
-        $this->actingAs($this->plainUser)->get('/kegiatan/'.$this->published->slug)->assertOk();
+        $this->get('/kegiatan/' . $this->published->slug)->assertOk();
+        $this->actingAs($this->plainUser)->get('/kegiatan/' . $this->published->slug)->assertOk();
     }
 
     #[Test]
     public function profil_penyelenggara_bisa_dirender(): void
     {
-        $this->get('/penyelenggara/'.$this->verifiedProfile->routeSlug())->assertOk();
+        $this->get('/penyelenggara/' . $this->verifiedProfile->routeSlug())->assertOk();
     }
 
     // --------------------------------------------------- halamanotentitas
@@ -263,12 +263,12 @@ class ViewSmokeTest extends TestCase
 
         foreach ($publik as $uri) {
             $this->get($uri)->assertOk();
-            $this->get($uri.'?page=2')->assertOk();
+            $this->get($uri . '?page=2')->assertOk();
         }
 
         foreach ($admin as $uri) {
             $this->actingAs($this->admin)->get($uri)->assertOk();
-            $this->actingAs($this->admin)->get($uri.'?page=2')->assertOk();
+            $this->actingAs($this->admin)->get($uri . '?page=2')->assertOk();
         }
 
         // Dan markup paginasinya benar-benar muncul, bukan sekadar tidak error.
@@ -305,12 +305,12 @@ class ViewSmokeTest extends TestCase
         return Event::create([
             'provider_profile_id' => $this->verifiedProfile->id,
             'category_id' => $this->category->id,
-            'title' => 'Lomba Smoke '.$slug,
+            'title' => 'Lomba Smoke ' . $slug,
             'slug' => $slug,
             'description' => str_repeat('Deskripsi kegiatan yang panjang untuk lolos validasi. ', 4),
-            'registration_url' => 'https://pendaftaran.test/'.$slug,
+            'registration_url' => 'https://pendaftaran.test/' . $slug,
             'mode' => EventMode::Online,
-            'platform_url' => 'https://meet.test/'.$slug,
+            'platform_url' => 'https://meet.test/' . $slug,
             'event_start_at' => now()->addMonth(),
             'event_end_at' => now()->addMonth()->addDay(),
             'registration_deadline' => now()->addWeek(),

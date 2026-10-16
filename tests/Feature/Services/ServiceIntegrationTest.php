@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Services;
 
+use App\DataTransferObjects\CatalogFilter;
 use App\Enums\AccountStatus;
 use App\Enums\EventMode;
 use App\Enums\EventStatus;
@@ -15,6 +16,8 @@ use App\Models\Category;
 use App\Models\Event;
 use App\Models\ProviderProfile;
 use App\Models\User;
+use App\Repositories\Contracts\AuditLogRepository;
+use App\Repositories\Contracts\EventRepository;
 use App\Services\AuthService;
 use App\Services\BookmarkService;
 use App\Services\EventExpiryService;
@@ -81,7 +84,7 @@ class ServiceIntegrationTest extends TestCase
             'provider_profile_id' => $this->provider->id,
             'category_id' => $this->category->id,
             'title' => 'Lomba Nasional Pemrograman 2026 untuk Mahasiswa',
-            'slug' => 'lomba-'.uniqid(),
+            'slug' => 'lomba-' . uniqid(),
             'description' => str_repeat('Deskripsi kegiatan yang panjang dan jelas untuk lolos validasi. ', 4),
             'registration_url' => 'https://pendaftaran.uji.ac.id/lomba',
             'mode' => EventMode::Online,
@@ -378,7 +381,7 @@ class ServiceIntegrationTest extends TestCase
         try {
             $reports->report($this->plainUser, $approved, ReportReason::Scam, 'laporan kedua');
             $this->fail('Laporan kedua seharusnya ditolak.');
-        } catch (\Illuminate\Validation\ValidationException $e) {
+        } catch (ValidationException $e) {
             $this->assertStringContainsString('sudah', (string) $e->validator->errors()->first('event'));
         }
 
@@ -459,8 +462,8 @@ class ServiceIntegrationTest extends TestCase
         // Geser tenggat ke masa lalu TANPA menjalankan command.
         $approved->forceFill(['registration_deadline' => now()->subDay()])->save();
 
-        $visible = app(\App\Repositories\Contracts\EventRepository::class)
-            ->paginatePublicCatalog(\App\DataTransferObjects\CatalogFilter::fromQuery([]));
+        $visible = app(EventRepository::class)
+            ->paginatePublicCatalog(CatalogFilter::fromQuery([]));
 
         $this->assertCount(0, $visible, 'Tenggat lewat harus hilang walau status masih approved.');
         $this->assertSame(
@@ -558,7 +561,7 @@ class ServiceIntegrationTest extends TestCase
 
         // Pengaman berlapis: sanitiser ada di repository, tapi test ini
         // memastikan tidak ada jalan lain yang bisa menulis mentah.
-        $log = app(\App\Repositories\Contracts\AuditLogRepository::class)
+        $log = app(AuditLogRepository::class)
             ->record('uji.lain', metadata: ['password' => 'rahasia-2', 'nama' => 'Sari']);
 
         $this->assertSame('[disembunyikan]', $log->metadata['password']);

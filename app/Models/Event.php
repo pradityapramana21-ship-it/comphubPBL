@@ -86,7 +86,7 @@ class Event extends Model
         return $this->hasMany(Bookmark::class);
     }
 
-        /**
+    /**
      * Pengguna yang menyimpan kegiatan ini.
      *
      * HANYA untuk membaca. Jangan pakai `->attach()` / `->sync()` untuk
@@ -117,7 +117,6 @@ class Event extends Model
     {
         return $this->hasMany(EventReport::class)->where('status', ReportStatus::Open->value);
     }
-
 
     // ------------------------------------------------------- scope publik
 
@@ -302,12 +301,12 @@ class Event extends Model
         $days = $this->daysUntilDeadline();
 
         return match (true) {
-            $days < -1 => 'Sudah lewat '.(-$days).' hari',
+            $days < -1 => 'Sudah lewat ' . (-$days) . ' hari',
             $days === -1 => 'Ditutup kemarin',
             $days === 0 => 'Ditutup hari ini',
             $days === 1 => 'Ditutup besok',
             $days <= 7 => "Ditutup $days hari lagi",
-            default => 'Ditutup '.$this->registration_deadline->translatedFormat('d M Y'),
+            default => 'Ditutup ' . $this->registration_deadline->translatedFormat('d M Y'),
         };
     }
 
@@ -317,7 +316,7 @@ class Event extends Model
         return match ($this->mode) {
             EventMode::Online => 'Daring',
             EventMode::Offline => (string) $this->location_text,
-            EventMode::Hybrid => 'Daring + '.((string) $this->location_text),
+            EventMode::Hybrid => 'Daring + ' . ((string) $this->location_text),
         };
     }
 

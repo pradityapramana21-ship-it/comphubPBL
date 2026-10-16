@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Feature\Database;
 
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -101,7 +101,7 @@ class SchemaConstraintTest extends TestCase
     #[Test]
     public function deadline_yang_melewati_tanggal_acara_ditolak_database(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::table('events')->insert([
             'id' => 99, 'provider_profile_id' => 1, 'category_id' => 1,
@@ -118,7 +118,7 @@ class SchemaConstraintTest extends TestCase
     #[Test]
     public function kegiatan_offline_tanpa_lokasi_ditolak_database(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         $this->insertEvent(99, 'Tanpa Lokasi', 'tanpa-lokasi', 'offline', 'draft', 0, null);
     }
@@ -126,7 +126,7 @@ class SchemaConstraintTest extends TestCase
     #[Test]
     public function status_kegiatan_tidak_dikenal_ditolak_database(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         $this->insertEvent(99, 'Status Ngawur', 'status-ngawur', 'online', 'ngawur', 0, null);
     }
@@ -134,7 +134,7 @@ class SchemaConstraintTest extends TestCase
     #[Test]
     public function risk_score_di_luar_rentang_ditolak_database(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         $this->insertEvent(99, 'Skor Gila', 'skor-gila', 'online', 'draft', 999, null);
     }
@@ -142,7 +142,7 @@ class SchemaConstraintTest extends TestCase
     #[Test]
     public function approved_tanpa_published_at_ditolak_database(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         $this->insertEvent(99, 'Tanpa Timestamp Tayang', 'tanpa-tayang', 'online', 'approved', 0, null);
     }
@@ -170,7 +170,7 @@ class SchemaConstraintTest extends TestCase
     #[Test]
     public function slug_yang_sudah_dipakai_ditolak(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::table('events')->where('id', 2)->update(['slug' => 'lomba-sah']);
     }
@@ -182,7 +182,7 @@ class SchemaConstraintTest extends TestCase
     {
         DB::table('bookmarks')->insert(['user_id' => 2, 'event_id' => 1, 'created_at' => now()]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::table('bookmarks')->insert(['user_id' => 2, 'event_id' => 1, 'created_at' => now()]);
     }
@@ -203,7 +203,7 @@ class SchemaConstraintTest extends TestCase
     #[Test]
     public function verifikasi_tanpa_verified_at_ditolak(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::table('provider_profiles')->where('id', 2)
             ->update(['verification_status' => 'verified']);
@@ -224,7 +224,7 @@ class SchemaConstraintTest extends TestCase
     #[Test]
     public function satu_akun_hanya_boleh_punya_satu_profil_organisasi(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::table('provider_profiles')->insert([
             'user_id' => 1, 'organization_name' => 'Ganda', 'campus_name' => 'Kampus C',
@@ -243,7 +243,7 @@ class SchemaConstraintTest extends TestCase
             'status' => 'open', 'created_at' => now(), 'updated_at' => now(),
         ]);
 
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::table('event_reports')->insert([
             'event_id' => 1, 'reporter_user_id' => 2, 'reason_code' => 'scam',
@@ -274,7 +274,7 @@ class SchemaConstraintTest extends TestCase
     #[Test]
     public function akun_ditangguhkan_wajib_punya_catatan_waktu(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::table('users')->where('id', 2)->update(['account_status' => 'suspended']);
     }
@@ -282,7 +282,7 @@ class SchemaConstraintTest extends TestCase
     #[Test]
     public function role_tak_dikenal_ditolak(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         DB::table('users')->where('id', 2)->update(['role' => 'superadmin']);
     }
@@ -308,7 +308,7 @@ class SchemaConstraintTest extends TestCase
             0,
             $naive,
             'Kolom waktu berikut masih tanpa zona waktu (Panduan §6.4 mewajibkan timestamptz): '
-                .$naive->map(fn ($c): string => "{$c->table_name}.{$c->column_name}")->implode(', ')
+                . $naive->map(fn ($c): string => "{$c->table_name}.{$c->column_name}")->implode(', ')
         );
     }
 }

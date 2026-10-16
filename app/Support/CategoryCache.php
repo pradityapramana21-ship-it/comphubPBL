@@ -59,7 +59,7 @@ class CategoryCache
                     // Kalau database belum siap, halaman statis tetap
                     // harus bisa dibuka. Menu filter kosong lebih baik
                     // daripada halaman putih.
-                    Log::warning('Gagal memuat kategori untuk cache: '.$e->getMessage());
+                    Log::warning('Gagal memuat kategori untuk cache: ' . $e->getMessage());
 
                     return [];
                 }

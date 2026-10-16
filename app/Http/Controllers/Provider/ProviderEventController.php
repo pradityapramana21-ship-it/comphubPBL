@@ -143,7 +143,7 @@ class ProviderEventController extends Controller
 
         if ($submitted->status === EventStatus::Rejected) {
             $this->flashFailure(
-                'Pengajuan ditolak otomatis oleh pemeriksaan otomatis. '.$submitted->rejection_reason,
+                'Pengajuan ditolak otomatis oleh pemeriksaan otomatis. ' . $submitted->rejection_reason,
             );
 
             return redirect()->route('provider.events.edit', $submitted);

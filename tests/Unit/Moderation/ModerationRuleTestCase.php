@@ -4,12 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Moderation;
 
-use App\Enums\VerificationStatus;
+use App\Enums\UserRole;
 use App\Models\Category;
 use App\Models\ProviderProfile;
 use App\Models\User;
 use App\Services\Moderation\ModerationContext;
 use App\Services\Moderation\ModerationRule;
+use App\Services\Moderation\RuleResult;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Tests\TestCase;
 
@@ -34,14 +35,14 @@ abstract class ModerationRuleTestCase extends TestCase
             'name' => 'Admin Moderasi',
             'email' => 'admin-moderasi@test',
             'password' => 'rahasia-kuat-123',
-            'role' => \App\Enums\UserRole::Admin,
+            'role' => UserRole::Admin,
         ]);
 
         $owner = User::create([
             'name' => 'BEM Uji',
             'email' => 'bem-uji@test',
             'password' => 'rahasia-kuat-123',
-            'role' => \App\Enums\UserRole::Provider,
+            'role' => UserRole::Provider,
         ]);
 
         $this->provider = ProviderProfile::create([
@@ -99,7 +100,7 @@ abstract class ModerationRuleTestCase extends TestCase
         return $this->rule()->evaluate($this->context($overrides)) !== null;
     }
 
-    protected function evaluate(array $overrides = []): ?\App\Services\Moderation\RuleResult
+    protected function evaluate(array $overrides = []): ?RuleResult
     {
         return $this->rule()->evaluate($this->context($overrides));
     }
@@ -109,9 +110,9 @@ abstract class ModerationRuleTestCase extends TestCase
     {
         $owner = User::create([
             'name' => 'Organisasi Baru',
-            'email' => 'baru-'.uniqid().'@test',
+            'email' => 'baru-' . uniqid() . '@test',
             'password' => 'rahasia-kuat-123',
-            'role' => \App\Enums\UserRole::Provider,
+            'role' => UserRole::Provider,
         ]);
 
         return ProviderProfile::create([

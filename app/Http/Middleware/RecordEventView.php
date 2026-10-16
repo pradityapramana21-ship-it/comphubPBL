@@ -48,7 +48,7 @@ class RecordEventView
         // Satu IP menambah maksimal satu hit per 30 detik per kegiatan.
         // Kunci memakai id, bukan slug, supaya kegiatan yang diganti
         // judulnya tidak mewarisi kuota tayangan yang sudah terpakai.
-        $key = 'event-view:'.$request->ip().':'.$event->id;
+        $key = 'event-view:' . $request->ip() . ':' . $event->id;
 
         if (RateLimiter::attempt($key, 1, static fn (): bool => true, 30)) {
             $event->registerView();

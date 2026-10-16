@@ -114,7 +114,7 @@ class LoginRequest extends FormRequest
      */
     private function failedAttemptsKey(): string
     {
-        return 'login-failed:'.$this->normalisedEmail().'|'.$this->ip();
+        return 'login-failed:' . $this->normalisedEmail() . '|' . $this->ip();
     }
 
     /** Email sudah dinormalisasi, siap dipakai sebagai kunci. */

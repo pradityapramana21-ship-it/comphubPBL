@@ -4,9 +4,9 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Admin;
 
-use App\Enums\ReportStatus;
 use App\Http\Controllers\Controller;
 use App\Models\EventReport;
+use App\Repositories\Contracts\ReportRepository;
 use App\Services\ReportService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,7 +22,7 @@ use Illuminate\View\View;
  */
 class ReportReviewController extends Controller
 {
-    public function index(Request $request, \App\Repositories\Contracts\ReportRepository $reports): View
+    public function index(Request $request, ReportRepository $reports): View
     {
         return view('admin.reports.index', [
             'pending' => $reports->paginateOpenQueue(perPage: 15),

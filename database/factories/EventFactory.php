@@ -41,7 +41,7 @@ class EventFactory extends Factory
         // sendiri, dan di lingkungan ini setiap factory baru mendapat
         // urutan nilai yang sama — sehingga unique() kehabisan percobaan
         // dan melempar OverflowException pada pembuatan data ketujuh.
-        $title = Str::title(fake()->words(5, true)).' '.fake()->numberBetween(1000, 999999);
+        $title = Str::title(fake()->words(5, true)) . ' ' . fake()->numberBetween(1000, 999999);
 
         return [
             'provider_profile_id' => ProviderProfile::factory()->verified(),
@@ -50,9 +50,9 @@ class EventFactory extends Factory
             'slug' => Str::slug($title),
             'description' => fake()->paragraphs(3, true),
             'requirements' => fake()->optional()->sentences(2, true),
-            'registration_url' => 'https://pendaftaran.test/'.Str::slug($title),
+            'registration_url' => 'https://pendaftaran.test/' . Str::slug($title),
             'mode' => EventMode::Online->value,
-            'platform_url' => 'https://meet.test/'.Str::slug($title),
+            'platform_url' => 'https://meet.test/' . Str::slug($title),
             'event_start_at' => now()->addMonth(),
             'event_end_at' => now()->addMonth()->addDay(),
             'registration_deadline' => now()->addWeek(),

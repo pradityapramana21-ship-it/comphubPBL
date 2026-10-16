@@ -7,8 +7,8 @@ namespace Database\Factories;
 use App\Enums\VerificationStatus;
 use App\Models\ProviderProfile;
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<ProviderProfile>
@@ -27,7 +27,7 @@ class ProviderProfileFactory extends Factory
      */
     public function definition(): array
     {
-        $organization = fake()->company().' Unit '.Str::upper(Str::random(5));
+        $organization = fake()->company() . ' Unit ' . Str::upper(Str::random(5));
 
         return [
             'user_id' => User::factory()->provider(),
@@ -36,8 +36,8 @@ class ProviderProfileFactory extends Factory
                 'Universitas Indonesia', 'Institut Teknologi Bandung',
                 'Universitas Gadjah Mada', 'Universitas Airlangga',
             ]),
-            'official_email' => Str::lower(Str::slug($organization, '-')).'@example.test',
-            'website_url' => 'https://'.Str::slug($organization, '-').'.example.test',
+            'official_email' => Str::lower(Str::slug($organization, '-')) . '@example.test',
+            'website_url' => 'https://' . Str::slug($organization, '-') . '.example.test',
             'description' => fake()->paragraph(3),
             'verification_status' => VerificationStatus::Pending->value,
         ];

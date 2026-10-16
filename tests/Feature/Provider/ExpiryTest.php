@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Tests\Feature\Services;
+namespace Tests\Feature\Provider;
 
-use App\Enums\ModerationAction;
 use App\Enums\EventStatus;
+use App\Enums\ModerationAction;
 use App\Models\Event;
 use App\Models\User;
 use App\Services\EventExpiryService;

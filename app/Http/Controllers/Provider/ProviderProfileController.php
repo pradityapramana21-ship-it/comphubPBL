@@ -11,6 +11,7 @@ use App\Repositories\Contracts\ProviderProfileRepository;
 use App\Services\ProviderVerificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\View\View;
 
 /**
@@ -50,7 +51,7 @@ class ProviderProfileController extends Controller
             // Berkas lama dibuang lebih dulu supaya folder upload tidak
             // menumpuk dokumen yang sudah tidak berlaku.
             if ($profile->verification_document_path !== null) {
-                \Illuminate\Support\Facades\Storage::disk('local')
+                Storage::disk('local')
                     ->delete($profile->verification_document_path);
             }
 

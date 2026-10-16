@@ -78,7 +78,7 @@ class DateSanityRule implements ModerationRule
             ruleKey: $this->key(),
             severity: $this->severity(),
             score: (int) config('moderation.weights.date_sanity', 30),
-            reason: 'Tanggal kegiatan tidak masuk akal: '.implode('; ', $problems).'.',
+            reason: 'Tanggal kegiatan tidak masuk akal: ' . implode('; ', $problems) . '.',
             metadata: [
                 'event_start_at' => $context->eventStartAt->format(DATE_ATOM),
                 'event_end_at' => $context->eventEndAt->format(DATE_ATOM),

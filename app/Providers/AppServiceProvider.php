@@ -28,6 +28,14 @@ use App\Repositories\Eloquent\EloquentModerationLogRepository;
 use App\Repositories\Eloquent\EloquentProviderProfileRepository;
 use App\Repositories\Eloquent\EloquentReportRepository;
 use App\Repositories\Eloquent\EloquentUserRepository;
+use App\Services\Moderation\Rules\BlockedKeywordRule;
+use App\Services\Moderation\Rules\ContactLeakRule;
+use App\Services\Moderation\Rules\ContentQualityRule;
+use App\Services\Moderation\Rules\DateSanityRule;
+use App\Services\Moderation\Rules\DuplicateEventRule;
+use App\Services\Moderation\Rules\RateLimitRule;
+use App\Services\Moderation\Rules\SuspiciousUrlRule;
+use App\Services\ModerationService;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -76,13 +84,13 @@ class AppServiceProvider extends ServiceProvider
      * @var list<class-string<ModerationRule>>
      */
     private const MODERATION_RULES = [
-        \App\Services\Moderation\Rules\DateSanityRule::class,
-        \App\Services\Moderation\Rules\ContentQualityRule::class,
-        \App\Services\Moderation\Rules\SuspiciousUrlRule::class,
-        \App\Services\Moderation\Rules\ContactLeakRule::class,
-        \App\Services\Moderation\Rules\DuplicateEventRule::class,
-        \App\Services\Moderation\Rules\RateLimitRule::class,
-        \App\Services\Moderation\Rules\BlockedKeywordRule::class,
+        DateSanityRule::class,
+        ContentQualityRule::class,
+        SuspiciousUrlRule::class,
+        ContactLeakRule::class,
+        DuplicateEventRule::class,
+        RateLimitRule::class,
+        BlockedKeywordRule::class,
     ];
 
     private function registerModerationRules(): void
@@ -92,8 +100,8 @@ class AppServiceProvider extends ServiceProvider
         }
 
         $this->app->bind(
-            \App\Services\ModerationService::class,
-            fn ($app): \App\Services\ModerationService => new \App\Services\ModerationService(
+            ModerationService::class,
+            fn ($app): ModerationService => new ModerationService(
                 $app->make(ModerationLogRepository::class),
                 $app->make(EventRepository::class),
                 ...array_map(
@@ -128,9 +136,12 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Pembatas laju permintaan (Panduan §7.2).
      *
-     * Nilai sengaja longgar untuk pemakaian normal dan ketat untuk login,
-     * supaya orang bisa salah ketik password dua kali, tapi tidak bisa
-     * menebak-nebak tanpa batas.
+     * Hanya limiter yang benar-benar dipakai sebuah rute yang didaftarkan
+     * di sini. Limiter tanpa rute tidak membatasi apa pun, dan hanya
+     * membuat konfigurasi terlihat lebih lengkap daripada kenyataannya.
+     *
+     * Pembatasan GAGAL pada halaman masuk tidak ada di sini, melainkan di
+     * LoginRequest; alasannya dijelaskan di sana.
      */
     private function registerRateLimiters(): void
     {
@@ -143,35 +154,24 @@ class AppServiceProvider extends ServiceProvider
         // salah ketik tiga kali lalu berhasil masuk akan terkunci 15 menit.
         RateLimiter::for('login', fn (Request $request): array => [
             Limit::perMinutes(15, $request->input('email') ? 30 : 10)
-                ->by('login:'.mb_strtolower((string) $request->input('email')).'|'.$request->ip()),
+                ->by('login:' . mb_strtolower((string) $request->input('email')) . '|' . $request->ip()),
             // Batas per alamat IP dibuat tinggi dengan sengaja: ribuan
             // mahasiswa sering berada di balik satu IP publik (NAT kampus),
             // jadi batas ketat akan mengunci seisi kampus sekaligus.
-            Limit::perMinutes(60, 60)->by('login-ip:'.$request->ip()),
+            Limit::perMinutes(60, 60)->by('login-ip:' . $request->ip()),
         ]);
 
-        RateLimiter::for('register', fn (Request $request): Limit =>
-            Limit::perMinutes(60, 5)->by('register:'.$request->ip()));
+        RateLimiter::for('register', fn (Request $request): Limit => Limit::perMinutes(60, 5)->by('register:' . $request->ip()));
 
-        RateLimiter::for('api', fn (Request $request): Limit =>
-            Limit::perMinute(120)->by('api:'.($request->user()?->id ?? $request->ip())));
+        RateLimiter::for('event-submit', fn (Request $request): Limit => Limit::perHour(10)->by('event-submit:' . ($request->user()?->id ?? $request->ip())));
 
-        RateLimiter::for('event-submit', fn (Request $request): Limit =>
-            Limit::perHour(10)->by('event-submit:'.($request->user()?->id ?? $request->ip())));
+        RateLimiter::for('bookmark', fn (Request $request): Limit => Limit::perMinute(30)->by('bookmark:' . ($request->user()?->id ?? $request->ip())));
 
-        RateLimiter::for('bookmark', fn (Request $request): Limit =>
-            Limit::perMinute(30)->by('bookmark:'.($request->user()?->id ?? $request->ip())));
+        RateLimiter::for('report', fn (Request $request): Limit => Limit::perHour(10)->by('report:' . ($request->user()?->id ?? $request->ip())));
 
-        RateLimiter::for('report', fn (Request $request): Limit =>
-            Limit::perHour(10)->by('report:'.($request->user()?->id ?? $request->ip())));
-
-        RateLimiter::for('contact', fn (Request $request): Limit =>
-            Limit::perHour(3)->by('contact:'.$request->ip()));
-
-        // Pesan default Laravel dalam bahasa Inggris; diganti supaya
-        // konsisten dengan seluruh antarmuka yang berbahasa Indonesia.
-        RateLimiter::for('global', fn (Request $request): Limit =>
-            Limit::perMinute(180)->by('global:'.($request->user()?->id ?? $request->ip())));
+        // Pengaman terakhir untuk satu rute yang menulis data tanpa
+        // limiter khusus. Nilainya longgar supaya tidak menyulitkan.
+        RateLimiter::for('global', fn (Request $request): Limit => Limit::perMinute(180)->by('global:' . ($request->user()?->id ?? $request->ip())));
     }
 
     /**

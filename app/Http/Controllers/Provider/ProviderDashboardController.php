@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Provider;
 
 use App\DataTransferObjects\CatalogFilter;
-use App\Enums\VerificationStatus;
 use App\Http\Controllers\Controller;
+use App\Models\Event;
 use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\ModerationLogRepository;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\View\View;
 
 /**
@@ -57,10 +58,10 @@ class ProviderDashboardController extends Controller
      * Daftar ini adalah alasan utama halaman ini ada: tanpa itu,
      * penyedia cuma harus complain "kenapa belum ditinjau?".
      *
-     * @param  \Illuminate\Support\Collection<int, \App\Models\Event>  $events
-     * @return \Illuminate\Support\Collection<int, \App\Models\Event>
+     * @param  Collection<int, Event>  $events
+     * @return Collection<int, Event>
      */
-    private function needsAction(iterable $events): \Illuminate\Support\Collection
+    private function needsAction(iterable $events): Collection
     {
         return collect($events)
             ->filter(fn ($event): bool => in_array(

@@ -16,6 +16,7 @@ use App\Repositories\Contracts\EventRepository;
 use App\Services\EventService;
 use App\Services\ModerationService;
 use Database\Seeders\DatabaseSeeder;
+use Illuminate\Database\QueryException;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -160,7 +161,7 @@ class DatabaseSeederTest extends TestCase
     #[Test]
     public function menjalankan_seeder_lagi_ditolak_karena_data_kembar(): void
     {
-        $this->expectException(\Illuminate\Database\QueryException::class);
+        $this->expectException(QueryException::class);
 
         $this->seed(DatabaseSeeder::class);
     }

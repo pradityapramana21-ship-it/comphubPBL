@@ -108,7 +108,7 @@ final class TextNormalizer
 
         $haystack = $this->normaliseAggressive($haystack);
 
-        return preg_match_all('/'.preg_quote($needle, '/').'/u', $haystack) ?: 0;
+        return preg_match_all('/' . preg_quote($needle, '/') . '/u', $haystack) ?: 0;
     }
 
     /**
@@ -182,7 +182,7 @@ final class TextNormalizer
         // Run 3+ jadi satu pada bentuk konservatif; run 2+ ikut satu pada
         // bentuk agresif. "judol" -> "judo" lalu "ol".
         $repeats = $minRun >= 3 ? '2,' : '1,';
-        $text = (string) preg_replace('/(.)\1{'.$repeats.'}/u', '$1', $text);
+        $text = (string) preg_replace('/(.)\1{' . $repeats . '}/u', '$1', $text);
 
         $text = (string) preg_replace('/[^\p{L}\p{N}]+/u', ' ', $text);
 

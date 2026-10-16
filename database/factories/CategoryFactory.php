@@ -22,7 +22,7 @@ class CategoryFactory extends Factory
     {
         $name = fake()->randomElement([
             'Lomba', 'Webinar', 'Seminar', 'Workshop', 'Pelatihan', 'Beasiswa',
-        ]).' '.Str::random(6);
+        ]) . ' ' . Str::random(6);
 
         return [
             'name' => $name,

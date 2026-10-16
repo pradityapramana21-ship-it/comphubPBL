@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Repositories\Eloquent;
 
 use App\Enums\ModerationAction;
-use App\Models\Event;
 use App\Models\ModerationLog;
 use App\Repositories\Contracts\ModerationLogRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -119,6 +118,7 @@ class EloquentModerationLogRepository implements ModerationLogRepository
         foreach ($metadata as $key => $value) {
             if (is_string($key) && in_array(strtolower($key), self::FORBIDDEN_KEYS, true)) {
                 $clean[$key] = '[disembunyikan]';
+
                 continue;
             }
 

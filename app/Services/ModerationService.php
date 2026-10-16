@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Services;
 
-use App\Enums\EventStatus;
 use App\Enums\ModerationAction;
 use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\ModerationLogRepository;

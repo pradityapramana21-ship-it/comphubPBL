@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Http\Requests\Event;
 
 use App\Enums\EventMode;
-use App\Models\Event;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Validator;
@@ -60,13 +59,13 @@ class UpdateEventRequest extends FormRequest
     /** @return array<string, string> */
     public function attributes(): array
     {
-        return (new StoreEventRequest())->attributes();
+        return (new StoreEventRequest)->attributes();
     }
 
     /** @return array<string, string> */
     public function messages(): array
     {
-        return (new StoreEventRequest())->messages();
+        return (new StoreEventRequest)->messages();
     }
 
     public function withValidator(Validator $validator): void

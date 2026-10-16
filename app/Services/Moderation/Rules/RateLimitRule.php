@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Services\Moderation\Rules;
 
 use App\Enums\RuleSeverity;
-use App\Enums\ModerationAction;
 use App\Repositories\Contracts\ModerationLogRepository;
 use App\Services\Moderation\ModerationContext;
 use App\Services\Moderation\ModerationRule;

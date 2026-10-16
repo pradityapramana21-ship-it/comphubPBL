@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Moderation;
 
+use App\Enums\EventMode;
 use App\Enums\EventStatus;
+use App\Models\Category;
 use App\Models\Event;
 use App\Services\Moderation\Rules\ContentQualityRule;
 use PHPUnit\Framework\Attributes\Test;
@@ -68,7 +70,7 @@ class ContentQualityRuleTest extends ModerationRuleTestCase
             'Penyedia terverifikasi tanpa riwayat tetap diperiksa.',
         );
 
-        $category = \App\Models\Category::first();
+        $category = Category::first();
         $needed = (int) config('moderation.trust.min_clean_submissions');
 
         // Riwayat harus menyentuh angka minimum, jadi n-1 masih tidak cukup.
@@ -89,7 +91,7 @@ class ContentQualityRuleTest extends ModerationRuleTestCase
         );
     }
 
-    private function makeApprovedEvent(\App\Models\Category $category, int $index): void
+    private function makeApprovedEvent(Category $category, int $index): void
     {
         Event::create([
             'provider_profile_id' => $this->provider->id,
@@ -98,7 +100,7 @@ class ContentQualityRuleTest extends ModerationRuleTestCase
             'slug' => "lampau-{$index}",
             'description' => str_repeat('Deskripsi kegiatan lama yang sudah pernah tayang. ', 3),
             'registration_url' => 'https://pendaftaran.uji.ac.id/lama',
-            'mode' => \App\Enums\EventMode::Online,
+            'mode' => EventMode::Online,
             'event_start_at' => now()->addDay(),
             'event_end_at' => now()->addDay()->addHour(),
             'registration_deadline' => now()->addHours(2),

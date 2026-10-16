@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace App\Repositories\Eloquent;
 
-use App\Models\Bookmark;
-use App\Models\Event;
 use App\Models\User;
 use App\Repositories\Contracts\BookmarkRepository;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;

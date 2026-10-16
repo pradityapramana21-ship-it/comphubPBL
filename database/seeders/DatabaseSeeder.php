@@ -169,7 +169,7 @@ class DatabaseSeeder extends Seeder
             'Universitas Demo',
             'Unit kegiatan tari yang tampil di setiap agenda mahasiswa.',
         );
-        $salsa->markRejected($admin, 'Nama organisasi belum bisa dipastikan. Mohon lampirkan bukti dari unit kegiatan.',);
+        $salsa->markRejected($admin, 'Nama organisasi belum bisa dipastikan. Mohon lampirkan bukti dari unit kegiatan.');
 
         return ['verified' => $bem, 'waiting' => $himpunan, 'rejected' => $salsa];
     }
@@ -181,7 +181,7 @@ class DatabaseSeeder extends Seeder
             'organization_name' => $organization,
             'campus_name' => $campus,
             'official_email' => $email,
-            'website_url' => 'https://'.Str::limit(Str::slug($organization), 40, '').'.lomba.test',
+            'website_url' => 'https://' . Str::limit(Str::slug($organization), 40, '') . '.lomba.test',
             'description' => $description,
         ]);
     }
@@ -201,9 +201,9 @@ class DatabaseSeeder extends Seeder
                 'title' => 'Lomba Penulisan Esai Nasional 2026',
                 'category' => 'Lomba',
                 'description' => 'Lomba esai terbuka untuk mahasiswa tingkat undergraduate dari '
-                    .'berbagai kampus. Tulis esai sepanjang 3.000 kata bertema "Kampus yang Kita '
-                    .'Bangun". Peserta mendaftarkan satu judul dan mengunggah berkasbefore '
-                    .'deadline. Hasil diumumkan lewat website resmi penyelenggara.',
+                    . 'berbagai kampus. Tulis esai sepanjang 3.000 kata bertema "Kampus yang Kita '
+                    . 'Bangun". Peserta mendaftarkan satu judul dan mengunggah berkasbefore '
+                    . 'deadline. Hasil diumumkan lewat website resmi penyelenggara.',
                 'deadline' => now()->addDays(9),
                 'start' => now()->addDays(24),
             ],
@@ -211,8 +211,8 @@ class DatabaseSeeder extends Seeder
                 'title' => 'Webinar Teknologi AI untuk Dosen',
                 'category' => 'Webinar',
                 'description' => 'Webinar pengenalan tools AI untuk dosen dan mahasiswa. Pembicara dari '
-                    .'komunitas praktisi. Materi direkam dan dibagikan ke peserta yang terdaftar. '
-                    .'Absensi dibuka lewat Zoom dan peserta tidak dipungut biaya.',
+                    . 'komunitas praktisi. Materi direkam dan dibagikan ke peserta yang terdaftar. '
+                    . 'Absensi dibuka lewat Zoom dan peserta tidak dipungut biaya.',
                 'deadline' => now()->addDays(3),
                 'start' => now()->addDays(10),
             ],
@@ -220,8 +220,8 @@ class DatabaseSeeder extends Seeder
                 'title' => 'Seminar Kesehatan Tidur bagi Mahasiswa',
                 'category' => 'Seminar',
                 'description' => 'Seminar kesehatan organizer dengan akademisi. Terbuka untuk umum dan '
-                    .'mahasiswa, tidak dipungut biaya. Ikuti langkah pendaftaran pada formulir resmi '
-                    .'dan datangkan lima belas menit lebih awal.',
+                    . 'mahasiswa, tidak dipungut biaya. Ikuti langkah pendaftaran pada formulir resmi '
+                    . 'dan datangkan lima belas menit lebih awal.',
                 'deadline' => now()->addDays(16),
                 'start' => now()->addDays(30),
             ],
@@ -229,8 +229,8 @@ class DatabaseSeeder extends Seeder
                 'title' => 'Workshop Menulis CV dan Surat Lamaran',
                 'category' => 'Workshop',
                 'description' => 'Workshop praktis menulis CV yang ringkas dan jujur. Peserta membawa '
-                    .'laptop dan portofolio masing-masing. Kuota 40 orang, pendaftaran '
-                    .'ditutup saat kuota penuh.',
+                    . 'laptop dan portofolio masing-masing. Kuota 40 orang, pendaftaran '
+                    . 'ditutup saat kuota penuh.',
                 'deadline' => now()->addDay(),
                 'start' => now()->addDays(7),
             ],
@@ -246,9 +246,9 @@ class DatabaseSeeder extends Seeder
                 'slug' => $slug,
                 'description' => $row['description'],
                 'requirements' => 'Membawa kartu mahasiswa dan mengisi formulir pendaftaran.',
-                'registration_url' => 'https://daftar.lomba.test/'.$slug,
+                'registration_url' => 'https://daftar.lomba.test/' . $slug,
                 'mode' => EventMode::Online->value,
-                'platform_url' => 'https://meet.lomba.test/'.$slug,
+                'platform_url' => 'https://meet.lomba.test/' . $slug,
                 'event_start_at' => $row['start'],
                 'event_end_at' => $row['start']->copy()->addDay(),
                 'registration_deadline' => $row['deadline'],
@@ -286,8 +286,8 @@ class DatabaseSeeder extends Seeder
             'title' => 'Lomba Business Plan Untuk Mahasiswa',
             'slug' => 'lomba-business-plan',
             'description' => 'Lomba business plan untuk mahasiswa. Peserta menyusun rencana usaha '
-                .'lengkap dan mempresentasikannya di depan juri. Penilaian dilakukan oleh praktisi '
-                .'yang pernah menjalankan usaha skala kecil.',
+                . 'lengkap dan mempresentasikannya di depan juri. Penilaian dilakukan oleh praktisi '
+                . 'yang pernah menjalankan usaha skala kecil.',
             'requirements' => 'Rencana usaha maksimal 20 halaman.',
             'registration_url' => 'https://daftar.lomba.test/business-plan',
             'mode' => EventMode::Offline->value,
@@ -350,9 +350,9 @@ class DatabaseSeeder extends Seeder
             'title' => 'Lomba Terbuka untuk Semua',
             'slug' => 'lomba-terbuka-semua',
             'description' => 'Lomba terbuka untuk semua. Bayar sebelum daftar, lalu '
-                .'transfer ke rekening yang kami kirim lewat wa. Pendaftaran gratis, cek link! '
-                .'Daftar di link! Bayar sebelum daftar! Cheap! Daftar di link! Cheap! Daftar di link! '
-                .'Cheap! Daftar di link! Cheap! Daftar di link! Cheap! Daftar di link!',
+                . 'transfer ke rekening yang kami kirim lewat wa. Pendaftaran gratis, cek link! '
+                . 'Daftar di link! Bayar sebelum daftar! Cheap! Daftar di link! Cheap! Daftar di link! '
+                . 'Cheap! Daftar di link! Cheap! Daftar di link! Cheap! Daftar di link!',
             'registration_url' => 'https://bit.ly/daftarsekil',
             'mode' => EventMode::Online->value,
             'platform_url' => 'https://bit.ly/join',
@@ -390,8 +390,8 @@ class DatabaseSeeder extends Seeder
             'title' => 'Webinar Git Untuk Mahasiswa',
             'slug' => 'webinar-git-untuk-mahasiswa',
             'description' => 'Webinar pengenalan Git dan GitHub untuk mahasiswa yang baru mulai '
-                .'bekerja sama dalam tim. Pembahasan alur kerja dasar, konflik merge, dan kebiasaan '
-                .'menulis pesan commit yang bisa dibaca.',
+                . 'bekerja sama dalam tim. Pembahasan alur kerja dasar, konflik merge, dan kebiasaan '
+                . 'menulis pesan commit yang bisa dibaca.',
             'registration_url' => 'https://daftar.lomba.test/webinar-git',
             'mode' => EventMode::Online->value,
             'platform_url' => 'https://meet.lomba.test/webinar-git',
@@ -410,7 +410,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'Seminar Keuangan Pribadi Untuk Mahasiswa',
             'slug' => 'seminar-keuangan-pribadi',
             'description' => 'Seminar pengelolaan keuangan pribadi untuk mahasiswa. Bahasan meliputi '
-                .'menabung, utang, dan menyusun anggaran bulanan. Peserta boleh bertanya langsung.',
+                . 'menabung, utang, dan menyusun anggaran bulanan. Peserta boleh bertanya langsung.',
             'registration_url' => 'https://daftar.lomba.test/seminar-keuangan',
             'mode' => EventMode::Hybrid->value,
             'location_text' => 'Ruang Serbaguna, Universitas Demo',
@@ -428,7 +428,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'Lomba Debat Bahasa Inggris',
             'slug' => 'lomba-debat-bahasa-inggris',
             'description' => 'Lomba debat bahasa Inggris untuk mahasiswa. Tahapan penyisihan '
-                .'dilakukan daring dan final dilaksanakan di ruang aula utama.',
+                . 'dilakukan daring dan final dilaksanakan di ruang aula utama.',
             'registration_url' => 'https://daftar.lomba.test/debat',
             'mode' => EventMode::Offline->value,
             'location_text' => 'Aula Barat, Universitas Demo',
@@ -449,7 +449,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'Webinar Rekrutmen Jarak Jauh',
             'slug' => 'webinar-async-hiring',
             'description' => 'Webinar tentang proses rekrutmen jarak jauh. Pembicara '
-                .'berpengalaman dari perusahaan teknologi. Rekaman dibagikan kepada peserta.',
+                . 'berpengalaman dari perusahaan teknologi. Rekaman dibagikan kepada peserta.',
             'registration_url' => 'https://daftar.lomba.test/async-hiring',
             'mode' => EventMode::Online->value,
             'platform_url' => 'https://meet.lomba.test/async-hiring',
@@ -469,7 +469,7 @@ class DatabaseSeeder extends Seeder
             'title' => 'Workshop Merakit PC',
             'slug' => 'workshop-merakit-pc',
             'description' => 'Workshop merakit PC dari pemilihan komponen sampai sistem terpasang. '
-                .'Peserta membawa komponen sendiri dan mengikuti panduanavailable dari teknisi.',
+                . 'Peserta membawa komponen sendiri dan mengikuti panduanavailable dari teknisi.',
             'registration_url' => 'https://daftar.lomba.test/merakit-pc',
             'mode' => EventMode::Offline->value,
             'location_text' => 'Lab Komputasi, Institut Teknologi Demo',

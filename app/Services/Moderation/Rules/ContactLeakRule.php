@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Services\Moderation\Rules;
 
+use App\Enums\RuleSeverity;
 use App\Services\Moderation\ModerationContext;
 use App\Services\Moderation\ModerationRule;
 use App\Services\Moderation\RuleResult;
-use App\Enums\RuleSeverity;
 
 /**
  * Menandai nomor telepon, WhatsApp, Telegram, atau email yang disalin ke
@@ -71,7 +71,7 @@ class ContactLeakRule implements ModerationRule
         ];
 
         $parts = array_map(
-            static fn (array $f): string => ($labels[$f['type']] ?? $f['type']).' di "'.$f['source'].'"',
+            static fn (array $f): string => ($labels[$f['type']] ?? $f['type']) . ' di "' . $f['source'] . '"',
             array_slice($findings, 0, 3),
         );
 
@@ -80,7 +80,7 @@ class ContactLeakRule implements ModerationRule
             severity: $this->severity(),
             score: (int) config('moderation.weights.contact_leak', 20),
             reason: 'Kontak langsung ditulis manual di deskripsi ('
-                .implode('; ', $parts).'). Gunakan tombol pendaftaran agar aktivitas bisa dimoderasi.',
+                . implode('; ', $parts) . '). Gunakan tombol pendaftaran agar aktivitas bisa dimoderasi.',
             metadata: ['findings' => $findings],
         );
     }

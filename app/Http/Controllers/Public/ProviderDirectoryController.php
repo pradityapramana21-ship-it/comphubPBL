@@ -9,10 +9,11 @@ use App\Http\Controllers\Controller;
 use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\ProviderProfileRepository;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ProviderDirectoryController extends Controller
 {
-    public function index(Request $request, ProviderProfileRepository $providers): \Illuminate\View\View
+    public function index(Request $request, ProviderProfileRepository $providers): View
     {
         return view('public.providers.index', [
             'providers' => $providers->paginatePublicDirectory(
@@ -34,7 +35,7 @@ class ProviderDirectoryController extends Controller
         string $slug,
         ProviderProfileRepository $providers,
         EventRepository $events,
-    ): \Illuminate\View\View {
+    ): View {
         $provider = $providers->findVerifiedBySlug($slug);
 
         abort_if($provider === null, 404, 'Penyelenggara tidak ditemukan.');
