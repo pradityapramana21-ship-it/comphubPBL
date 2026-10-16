@@ -89,6 +89,33 @@ final readonly class CatalogFilter
         );
     }
 
+    /** Dibatasi pada satu penyedia. */
+    public function forProviderId(int $providerProfileId): self
+    {
+        return new self(
+            $this->keyword, $this->categoryId, $this->mode,
+            $this->startsFrom, $this->startsUntil, $this->onlyOpen,
+            $this->status, $providerProfileId, $this->userId,
+            $this->sort, $this->perPage,
+        );
+    }
+
+    /**
+     * Varian dengan batas jumlah hasil.
+     *
+     * Dipakai beranda dan widget, di mana memuat 48 hasil hanya untuk
+     * membuang 42-nya ke bawah lipatan adalah pemborosan yang nyata.
+     */
+    public function withLimit(int $limit): self
+    {
+        return new self(
+            $this->keyword, $this->categoryId, $this->mode,
+            $this->startsFrom, $this->startsUntil, $this->onlyOpen,
+            $this->status, $this->providerProfileId, $this->userId,
+            $this->sort, max(1, min($limit, 48)),
+        );
+    }
+
     /** Ringkasan filter aktif, ditampilkan di UI sebagai chip yang bisa dihapus. */
     public function isEmpty(): bool
     {

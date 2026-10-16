@@ -36,6 +36,9 @@ class EloquentEventRepository implements EventRepository
         return $this->baseQuery($filter)
             ->published()
             ->when($filter->onlyOpen, fn (Builder $q) => $q->where('registration_deadline', '>=', now()))
+            // Diperlukan untuk kartu di halaman profil penyelenggara:
+            // jumlah penyimpanan diambil dari cache, bukan dihitung ulang.
+            ->withCount('bookmarks')
             ->sorted($filter->sort)
             ->paginate($filter->perPage)
             ->withQueryString();
