@@ -74,13 +74,12 @@ export function initCountdown() {
 
             node.textContent = remaining > 0 ? formatRemaining(remaining) : 'Pendaftaran ditutup';
 
-            // Tanggal lengkap selalu ada sebagai teks nyata, bukan cuma
-            // atribut title: sebagian pembaca layar dan sebagian orang
-            // tidak pernah mouse-over sebuah span.
+            // Tanggal lengkap selalu ada sebagai teks nyata di dalam
+            // span, bukan cuma atribut title: sebagian pembaca layar dan
+            // sebagian orang tidak pernah mouse-over sebuah span.
             const hint = node.querySelector('[data-countdown-hint]');
             if (hint) {
-                hint.textContent = full;
-                hint.hidden = remaining > 0;
+                hint.textContent = `Tenggat pendaftaran: ${full}.`;
             }
 
             if (remaining <= 0) {

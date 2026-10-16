@@ -35,8 +35,9 @@
                                 @include('partials.confirm-modal', [
                                     'id' => 'tolak-'.$provider->id,
                                     'title' => 'Tolak verifikasi?',
-                                    'body' => 'Tuliskan alasannya di bawah. Penyedia membacanya dan bisa memperbaiki.',
-                                    'confirmLabel' => 'Tolak',
+                                    'body' => 'Alasan wajib diisi. Penyedia membacanya dan bisa memperbaiki.',
+                                    'confirmLabel' => 'Kirim penolakan',
+                                    'formId' => 'form-tolak-'.$provider->id,
                                 ])
                             </div>
 

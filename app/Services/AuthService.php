@@ -35,6 +35,14 @@ class AuthService
     ) {}
 
     /** Daftar sebagai pengguna biasa. */
+    /**
+     * Pendaftaran mahasiswa, INCLUDING login.
+     *
+     * Kalau akun dibuat tapi tidak langsung masuk, orang yang baru
+     * mendaftar akan diarahkan ke dasbor lalu langsung dikembalikan ke
+     * halaman masuk dengan pesan "sesi berakhir" — padahal tidak ada
+     * yang salah. Jadi setelah akun dibuat, sesi dibuatkan dari awal.
+     */
     public function registerUser(string $name, string $email, string $password): User
     {
         $normalised = mb_strtolower(trim($email));
@@ -47,9 +55,23 @@ class AuthService
 
         $user = $this->users->create($name, $normalised, $password, UserRole::User);
 
+        $this->establishSession($user);
+
         $this->audit->record('user.registered', $user);
 
         return $user;
+    }
+
+    /**
+     * Membuat sesi login untuk akun yang baru saja dibuat atau diverifikasi.
+     */
+    private function establishSession(User $user): void
+    {
+        Auth::login($user);
+
+        // ID sesi baru menutup serangan session fixation, sama seperti
+        // pada login biasa.
+        session()->regenerate();
     }
 
     /**
@@ -85,6 +107,8 @@ class AuthService
                 'description' => $data['description'] ?? null,
                 'verification_document_path' => $documentPath,
             ]);
+
+            $this->establishSession($user);
 
             $this->audit->record('provider.registered', $user);
 

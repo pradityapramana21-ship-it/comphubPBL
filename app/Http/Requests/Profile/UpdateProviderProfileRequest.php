@@ -8,11 +8,19 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateProviderProfileRequest extends FormRequest
 {
+    /**
+     * Rute profil organisasi tidak punya parameter rute sama sekali —
+     * profil ditentukan dari akun yang sedang masuk. Mengambil profil
+     * dari parameter rute membuat authorize() selalu bernilai false,
+     * dan pennyedia tidak pernah bisa menyimpan perubahannya.
+     */
     public function authorize(): bool
     {
-        $profile = $this->route()->parameter('provider');
+        $user = $this->user();
+        $profile = $user?->providerProfile;
 
-        return $profile !== null && $this->user()?->can('update', $profile) === true;
+        return $profile !== null
+            && $user->can('update', $profile) === true;
     }
 
     /** @return array<string, array<int, mixed>> */

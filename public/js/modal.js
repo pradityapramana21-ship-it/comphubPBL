@@ -47,7 +47,19 @@ export function initModal() {
     });
 
     document.querySelectorAll('[data-modal-close]').forEach((button) => {
-        button.addEventListener('click', () => closeModal(button.closest('.modal-backdrop-lk')));
+        button.addEventListener('click', () => {
+            const formId = button.dataset.modalSubmit;
+
+            // Tombol konfirmasi yang punya form tujuan mengirimnya dulu,
+            // baru menutup dialog. requestSubmit() dipakai, bukan
+            // form.submit(), supaya validasi browser dan event submit
+            // tetap berjalan.
+            if (formId) {
+                document.getElementById(formId)?.requestSubmit();
+            }
+
+            closeModal(button.closest('.modal-backdrop-lk'));
+        });
     });
 
     document.querySelectorAll('.modal-backdrop-lk').forEach((backdrop) => {

@@ -134,14 +134,20 @@ class AppServiceProvider extends ServiceProvider
      */
     private function registerRateLimiters(): void
     {
-        // Tipe kembalian di sini sengaja TIDAK ditulis: satu named
-        // limiter boleh mengembalikan beberapa Limit sekaligus, dan
-        // Closure dengan tipe `Limit` akan melempar TypeError tepat saat
-        // route login dipakai — bukan saat aplikasi start.
+        // Batas volume, bukan batas kegagalan. Penghitung kegagalan yang
+        // ketat ada di LoginRequest dengan pesannya sendiri.
+        //
+        // Catatan penting: middleware menyusun kunci penghitungnya secara
+        // internal, jadi halaman login tidak bisa mengosongkannya. Karena
+        // itu batas di sini sengaja longgar — kalau ketat, orang yang
+        // salah ketik tiga kali lalu berhasil masuk akan terkunci 15 menit.
         RateLimiter::for('login', fn (Request $request): array => [
-            Limit::perMinutes(15, $request->input('email') ? 5 : 3)
+            Limit::perMinutes(15, $request->input('email') ? 30 : 10)
                 ->by('login:'.mb_strtolower((string) $request->input('email')).'|'.$request->ip()),
-            Limit::perMinutes(60, 10)->by('login-ip:'.$request->ip()),
+            // Batas per alamat IP dibuat tinggi dengan sengaja: ribuan
+            // mahasiswa sering berada di balik satu IP publik (NAT kampus),
+            // jadi batas ketat akan mengunci seisi kampus sekaligus.
+            Limit::perMinutes(60, 60)->by('login-ip:'.$request->ip()),
         ]);
 
         RateLimiter::for('register', fn (Request $request): Limit =>

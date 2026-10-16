@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Auth;
 
-use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Str;
@@ -13,11 +12,21 @@ use Illuminate\Validation\ValidationException;
 /**
  * Validasi dan pembatasan laju untuk halaman masuk.
  *
- * Rate limiter sudah didaftarkan dengan nama 'login' di
- * AppServiceProvider. Halaman ini tinggal memakainya.
+ * Dua lapis pembatasan ada di sini, dan keduanya disengaja:
+ *
+ *  - `throttle:login` (middleware) membatasi VOLUME permintaan, sehingga
+ *    percobaan otomatis yang berpindah-pindah kata sandi akan dihentikan
+ *    oleh middleware, bukan oleh kode halaman ini.
+ *  - Penghitung di bawah ini membatasi KEGAGALAN, dan bisa dikosongkan
+ *    begitu login berhasil.
  */
 class LoginRequest extends FormRequest
 {
+    /** Lima kali gagal dalam lima belas menit sudah lebih dari cukup. */
+    private const FAILURE_LIMIT = 5;
+
+    private const FAILURE_DECAY_SECONDS = 900;
+
     public function authorize(): bool
     {
         return true;
@@ -46,80 +55,66 @@ class LoginRequest extends FormRequest
     }
 
     /**
-     * Pastikan permintaan ini belum melewati batas percobaan.
+     * Pastikan percobaan GAGAL belum melewati batas.
+     *
+     * Penghitung ini milik aplikasi sendiri, terpisah dari middleware
+     * `throttle:login`. Alasannya penting: middleware menyusun kunci
+     * counternya sendiri secara internal (`login:<kunci>` atau md5-nya),
+     * jadi aplikasi tidak bisa membaca atau mengosongkan penghitung yang
+     * sama. Percobaan yang benar-benar gagal needing dik Vegas dari
+     * request volume.
      *
      * @throws ValidationException
      */
     public function ensureIsNotRateLimited(): void
     {
-        $limits = $this->limits();
-
-        if ($limits === []) {
+        if (! RateLimiter::tooManyAttempts($this->failedAttemptsKey(), self::FAILURE_LIMIT)) {
             return;
         }
 
-        foreach ($limits as $limit) {
-            if (RateLimiter::tooManyAttempts($limit->key, $limit->maxAttempts)) {
-                throw ValidationException::withMessages([
-                    'email' => sprintf(
-                        'Terlalu banyak percobaan masuk. Coba lagi dalam %d detik.',
-                        RateLimiter::availableIn($limit->key),
-                    ),
-                ]);
-            }
-        }
+        throw ValidationException::withMessages([
+            'email' => sprintf(
+                'Terlalu banyak percobaan masuk yang gagal. Coba lagi dalam %d detik.',
+                RateLimiter::availableIn($this->failedAttemptsKey()),
+            ),
+        ]);
     }
 
     /**
-     * Catat percobaan, berhasil maupun gagal.
-     *
-     * Setiap limit dipanggil dengan decay-nya sendiri. Kalau tidak,
-     * batas "5 kali dalam 15 menit" akan terhitung sebagai "5 kali dalam
-     * 1 menit" karena itu nilai bawaan RateLimiter::hit().
+     * Catat percobaan gagal.
      */
-    public function recordAttempt(): void
+    public function recordFailure(): void
     {
-        foreach ($this->limits() as $limit) {
-            RateLimiter::hit($limit->key, $limit->decaySeconds);
-        }
+        RateLimiter::hit($this->failedAttemptsKey(), self::FAILURE_DECAY_SECONDS);
     }
 
     /** Berapa detik lagi orang boleh mencoba lagi. */
     public function secondsUntilAvailable(): int
     {
-        $limits = $this->limits();
-
-        if ($limits === []) {
-            return 0;
-        }
-
-        return max(array_map(
-            static fn (Limit $limit): int => RateLimiter::availableIn($limit->key),
-            $limits,
-        ));
+        return RateLimiter::availableIn($this->failedAttemptsKey());
     }
 
     /**
-     * Batas-batas yang berlaku untuk permintaan ini.
+     * Hapus jejak kegagalan setelah login berhasil.
      *
-     * Limiter 'login' sengaja mendaftarkan dua batas sekaligus: satu per
-     * email dan satu per alamat IP. Keduanya harus dihormati, jadi hasil
-     * limiter dinormalkan menjadi daftar. Limiter yang hanya mengembalikan
-     * satu Limit pun tetap bekerja karena dibungkus jadi daftar berisi satu.
-     *
-     * @return list<Limit>
+     * Tanpa ini, orang yang salah ketik tiga kali lalu berhasil masuk
+     * akan terkunci pada percobaan berikutnya, padahal dia sudah
+     * membuktikan kata sandinya benar.
      */
-    private function limits(): array
+    public function clearFailures(): void
     {
-        $limiter = RateLimiter::limiter('login');
+        RateLimiter::clear($this->failedAttemptsKey());
+    }
 
-        if ($limiter === null) {
-            return [];
-        }
-
-        $result = $limiter($this);
-
-        return is_array($result) ? array_values($result) : [$result];
+    /**
+     * Kunci penghitung kegagalan.
+     *
+     * Namespace-nya sengaja berbeda dari "login" milik middleware,
+     * supaya tidak pernah saling menimpa.
+     */
+    private function failedAttemptsKey(): string
+    {
+        return 'login-failed:'.$this->normalisedEmail().'|'.$this->ip();
     }
 
     /** Email sudah dinormalisasi, siap dipakai sebagai kunci. */

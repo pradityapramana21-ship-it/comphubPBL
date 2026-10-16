@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Enums\UserRole;
 use App\Support\CategoryCache;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
+use Illuminate\Support\Facades\RateLimiter;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
 
@@ -35,6 +36,11 @@ class RuntimeRegressionTest extends TestCase
         config(['cache.default' => 'database']);
         $this->app->forgetInstance('cache');
         $this->app->forgetInstance('cache.store');
+
+        // Rate limiter ikut memakai cache, dan batas per alamat IP
+        // dipakai bersama oleh semua test di kelas ini. Tanpa pembersihan,
+        // test percobaan masuk bisa mengunci test berikutnya lewat 429.
+        RateLimiter::clear('login-ip:127.0.0.1');
     }
 
     /**
@@ -120,6 +126,38 @@ class RuntimeRegressionTest extends TestCase
             ->assertNotFound();
     }
 
+    /**
+     * Login yang berhasil harus menghapus jejak percobaan.
+     *
+     * Kalau tidak dihapus, orang yang salah ketik password dua kali lalu
+     * berhasil masuk akan langsung terkunci pada percobaan berikutnya.
+     */
+    #[Test]
+    public function login_berhasil_mengosongkan_jejak_percobaan(): void
+    {
+        $admin = User::factory()->admin()->create(['password' => 'rahasia-kuat-123']);
+
+        $this->post('/masuk', ['email' => $admin->email, 'password' => 'salah'])->assertRedirect();
+        $this->post('/masuk', ['email' => $admin->email, 'password' => 'salah'])->assertRedirect();
+
+        $this->post('/masuk', ['email' => $admin->email, 'password' => 'rahasia-kuat-123'])
+            ->assertRedirect(route('admin.dashboard'));
+        $this->assertAuthenticatedAs($admin);
+
+        $this->post('/keluar')->assertRedirect();
+
+        // Jejak percobaan harus kosong: dua percobaan yang tersisa masih
+        // boleh, bukan langsung terkunci karena sebelumnya sempat salah.
+        for ($attempt = 0; $attempt < 3; $attempt++) {
+            $this->post('/masuk', ['email' => $admin->email, 'password' => 'salah'])
+                ->assertRedirect();
+        }
+
+        $this->post('/masuk', ['email' => $admin->email, 'password' => 'rahasia-kuat-123'])
+            ->assertRedirect(route('admin.dashboard'));
+        $this->assertAuthenticatedAs($admin);
+    }
+
     /** Regression: halaman daftar kegiatan penyedia pernah tertangkap rute publik. */
     #[Test]
     public function halaman_penyedia_tidak_tertangkap_rute_publik(): void
@@ -151,31 +189,57 @@ class RuntimeRegressionTest extends TestCase
     }
 
     /**
-     * Setelah lima percobaan salah, percobaan berikutnya harus ditolak.
+     * Lima kegagalan berturut-turut harus mengunci percobaan berikutnya —
+     * dengan pesan Bahasa Indonesia, bukan 429 kosong dari middleware.
      *
-     * Middleware throttle yang menjawab lebih dulu, jadi bentuk jawabannya
-     * 429 — bukan pesan validasi. Bedanya penting: kalau di masa depan
-     * ada yang menghapus middleware throttle, test ini harus gagal, bukan diam.
+     * Bentuk jawaban ini penting: kalau suatu saat penghitung kegagalan
+     * ini dihapus, test ini harus gagal, bukan diam saja.
      */
     #[Test]
-    public function percobaan_masuk_dibatasi(): void
+    public function percobaan_gagal_yang_berulang_di_kunci(): void
     {
         $admin = User::factory()->admin()->create(['password' => 'rahasia-kuat-123']);
 
         for ($attempt = 0; $attempt < 5; $attempt++) {
             $this->post('/masuk', ['email' => $admin->email, 'password' => 'salah'])
-                ->assertRedirect();
+                ->assertRedirect()
+                ->assertSessionHasErrors('email');
         }
 
-        $this->post('/masuk', ['email' => $admin->email, 'password' => 'rahasia-kuat-123'])
-            ->assertStatus(429);
+        // Percobaan keenam: kata sandi yang benar pun tidak diterima.
+        $response = $this->post('/masuk', [
+            'email' => $admin->email,
+            'password' => 'rahasia-kuat-123',
+        ]);
 
+        $response->assertRedirect();
+        $response->assertSessionHasErrors('email');
         $this->assertGuest();
 
-        // Halaman 429 harus langsung(diminta orang setelah terlalu banyak
-        // percobaan) dan berbahasa Indonesia, bukan halaman bawaan Laravel.
+        $this->assertStringContainsString(
+            'Terlalu banyak percobaan',
+            (string) $response->getSession()->get('errors')->first('email'),
+        );
+
+        // Halaman pendukung tetap bisa dibuka, dan 404 tetap normal.
         $this->get('/masuk')->assertOk();
         $this->get('/halaman-yang-tidak-ada')->assertNotFound();
+    }
+
+    /**
+     * Batas volume oleh middleware masih berlaku untuk yang mengirim
+     * banyak permintaan tanpa email sama sekali.
+     */
+    #[Test]
+    public function permintaan_masif_tanpa_email_ditolak(): void
+    {
+        $statuses = [];
+
+        for ($request = 0; $request < 12; $request++) {
+            $statuses[] = $this->post('/masuk', [])->getStatusCode();
+        }
+
+        $this->assertContains(429, $statuses, 'Batas volume tidak berlaku untuk permintaan tanpa email.');
     }
 }
 

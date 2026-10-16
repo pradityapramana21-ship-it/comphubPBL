@@ -15,7 +15,6 @@ use App\Services\AuthService;
 use App\Services\ProviderVerificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -52,12 +51,12 @@ class AuthController extends Controller
             // Percobaan GAGAL ikut dihitung. Kalau tidak, penyerang bisa
             // menebak tanpa batas selama limiter hanya menghitung yang lupa
             // password.
-            $request->recordAttempt();
+            $request->recordFailure();
 
             throw $e;
         }
 
-        RateLimiter::clear($request->normalisedEmail());
+        $request->clearFailures();
 
         return $this->redirectAfterLogin($request, $user);
     }
@@ -84,8 +83,8 @@ class AuthController extends Controller
             password: (string) $request->input('password'),
         );
 
-        $request->session()->regenerate();
-
+        // Sesi sudah dibuat AuthService::registerUser(); regenerate di
+        // sini hanya mengulang pekerjaan yang sama.
         return redirect()
             ->route('user.dashboard')
             ->with('success', 'Selamat datang, '.$user->name.'! Simpan kegiatan yang menarik agar tidak terlewat.');
@@ -114,9 +113,7 @@ class AuthController extends Controller
             );
         }
 
-        $user = $auth->registerProvider($request->providerAttributes(), $path);
-
-        $request->session()->regenerate();
+        $auth->registerProvider($request->providerAttributes(), $path);
 
         return redirect()
             ->route('provider.dashboard')

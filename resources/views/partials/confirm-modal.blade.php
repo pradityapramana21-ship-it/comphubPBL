@@ -16,6 +16,7 @@
     'body' => 'Tindakan ini tidak dapat dibatalkan.',
     'confirmLabel' => 'Ya, lanjutkan',
     'variant' => 'danger',
+    'formId' => null,
 ])
 
 <div class="modal-backdrop-lk" id="{{ $id }}" role="dialog" aria-modal="true"
@@ -25,7 +26,15 @@
         <p class="text-muted-soft mb-4">{{ $body }}</p>
         <div class="d-flex gap-2 justify-content-end">
             <button type="button" class="btn btn-outline-secondary" data-modal-close>Batal</button>
-            <button type="button" class="btn btn-{{ $variant }}" data-modal-close>{{ $confirmLabel }}</button>
+            {{--
+                Kalau formId diisi, tombol ini mengirim form tersebut.
+                Tanpa itu, tombol hanya menutup dialog dan orang mengira
+                aksinya sudah terjadi padahal belum ada yang berubah.
+            --}}
+            <button type="button" class="btn btn-{{ $variant }}" data-modal-close
+                    @if ($formId) data-modal-submit="{{ $formId }}" @endif>
+                {{ $confirmLabel }}
+            </button>
         </div>
     </div>
 </div>
