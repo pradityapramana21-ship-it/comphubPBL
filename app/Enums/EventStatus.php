@@ -97,17 +97,20 @@ enum EventStatus: string
      * Transisi status yang sah. Dipakai oleh EventService untuk menolak
      * perubahan status yang tidak wajar, dan diuji di Feature/Admin.
      *
+     * Mengembalikan NILAI string, bukan enum case — supaya bisa langsung
+     * dibandingkan dengan $next->value.
+     *
      * @return list<string>
      */
     public function allowedTransitions(): array
     {
         return match ($this) {
-            self::Draft => [self::Pending, self::Archived],
-            self::Pending => [self::Approved, self::Rejected, self::ChangesRequested, self::Draft],
-            self::ChangesRequested => [self::Pending, self::Archived],
-            self::Rejected => [self::Pending, self::Archived],
-            self::Approved => [self::Expired, self::Archived],
-            self::Expired => [self::Archived],
+            self::Draft => [self::Pending->value, self::Archived->value],
+            self::Pending => [self::Approved->value, self::Rejected->value, self::ChangesRequested->value, self::Draft->value],
+            self::ChangesRequested => [self::Pending->value, self::Archived->value],
+            self::Rejected => [self::Pending->value, self::Archived->value],
+            self::Approved => [self::Expired->value, self::Archived->value],
+            self::Expired => [self::Archived->value],
             self::Archived => [],
         };
     }
