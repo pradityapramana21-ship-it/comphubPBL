@@ -56,6 +56,22 @@ enum VerificationStatus: string
     }
 
     /**
+     * Nama token warna dari design system.
+     *
+     * Ada di sini, bukan ditulis terpisah di Blade, supaya satu lencana
+     * yang sama bisa dipakai untuk status kegiatan maupun status
+     * verifikasi organisasi.
+     */
+    public function tone(): string
+    {
+        return match ($this) {
+            self::Verified => 'success',
+            self::Pending => 'warning',
+            self::Rejected => 'danger',
+        };
+    }
+
+    /**
      * @return list<string>
      */
     public static function values(): array

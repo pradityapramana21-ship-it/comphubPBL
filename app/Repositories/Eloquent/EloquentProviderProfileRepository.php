@@ -48,7 +48,11 @@ class EloquentProviderProfileRepository implements ProviderProfileRepository
             ->verified()
             ->search($keyword)
             ->withCount(['events' => fn (Builder $q) => $q->published()])
-            ->having('events_count', '>', 0)
+            // whereHas, BUKAN having('events_count', '>', 0). Kolom hasil
+            // withCount() adalah alias SELECT, dan PostgreSQL menolaknya
+            // di HAVING tanpa GROUP BY. whereHas menuliskan subquery EXISTS
+            // yang benar sebagai filter WHERE.
+            ->whereHas('events', fn (Builder $q) => $q->published())
             ->orderBy('organization_name')
             ->paginate(min($perPage, 48));
     }

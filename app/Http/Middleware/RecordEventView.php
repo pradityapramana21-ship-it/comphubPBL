@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Http\Middleware;
 
+use App\Models\Event;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\RateLimiter;
@@ -19,10 +20,16 @@ use Symfony\Component\HttpFoundation\Response;
  *
  * Penghitung disimpan di database lewat repository, bukan di memori,
  * supaya tetap konsisten di antara beberapa proses PHP.
+ *
+ * Catatan penting soal nama parameter: rute publik memakai `/kegiatan/{event}`,
+ * tempat "{event}" adalah NAMA parameternya dan slug dipakai lewat
+ * getRouteKeyName(). Karena itu middleware ini mencari objek yang sudah
+ * di-resolve di bawah nama "event" — bukan "slug". Mencari "slug" selalu
+ * menghasilkan null, dan penghitung tidak pernah naik sama sekali.
  */
 class RecordEventView
 {
-    public function handle(Request $request, Closure $next, string $parameter = 'slug'): Response
+    public function handle(Request $request, Closure $next, string $parameter = 'event'): Response
     {
         $response = $next($request);
 
@@ -30,24 +37,21 @@ class RecordEventView
             return $response;
         }
 
-        $slug = $request->route($parameter);
+        $event = $request->route($parameter);
 
-        if (! is_string($slug) || $slug === '') {
+        // Hanya model Event yang dihitung. Kalau rute ini dipakai ulang
+        // untuk model lain, penghitungnya tidak boleh ikut naik.
+        if (! $event instanceof Event || ! $event->isPublished()) {
             return $response;
         }
 
-        $key = 'event-view:'.$request->ip();
-
         // Satu IP menambah maksimal satu hit per 30 detik per kegiatan.
-        if (RateLimiter::attempt($key.':'.$slug, 1, static fn (): bool => true, 30)) {
-            $event = $request->route('event');
+        // Kunci memakai id, bukan slug, supaya kegiatan yang diganti
+        // judulnya tidak mewarisi kuota tayangan yang sudah terpakai.
+        $key = 'event-view:'.$request->ip().':'.$event->id;
 
-            // Hanya kegiatan yang benar-benar tayang yang dihitung. Kalau
-            // tidak, satu orang bisa menaikkan angka dengan membuka URL
-            // draf milik orang lain berulang kali.
-            if ($event instanceof \App\Models\Event && $event->isPublished()) {
-                $event->registerView();
-            }
+        if (RateLimiter::attempt($key, 1, static fn (): bool => true, 30)) {
+            $event->registerView();
         }
 
         return $response;

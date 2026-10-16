@@ -33,12 +33,12 @@ class EloquentEventRepository implements EventRepository
 
     public function paginatePublicCatalog(CatalogFilter $filter): LengthAwarePaginator
     {
+        // Jumlah penyimpanan dibaca dari kolom cache bookmark_count yang
+        // BookmarkService/rawat, jadi tidak perlu withCount di sini.
+        // Memakainya justru menambah satu subquery tanpa dipakai.
         return $this->baseQuery($filter)
             ->published()
             ->when($filter->onlyOpen, fn (Builder $q) => $q->where('registration_deadline', '>=', now()))
-            // Diperlukan untuk kartu di halaman profil penyelenggara:
-            // jumlah penyimpanan diambil dari cache, bukan dihitung ulang.
-            ->withCount('bookmarks')
             ->sorted($filter->sort)
             ->paginate($filter->perPage)
             ->withQueryString();
@@ -48,7 +48,6 @@ class EloquentEventRepository implements EventRepository
     {
         return $this->baseQuery($filter)
             ->where('provider_profile_id', $providerProfileId)
-            ->withCount('bookmarks')
             ->latest()
             ->paginate($filter->perPage);
     }
@@ -72,7 +71,6 @@ class EloquentEventRepository implements EventRepository
             ->inReviewQueue()
             ->with(['providerProfile.user', 'category'])
             ->withCount('openReports')
-            ->withCount('bookmarks')
             // Risiko tertinggi dan terlama menunggu di atas.
             ->orderByDesc('risk_score')
             ->orderBy('submitted_at')

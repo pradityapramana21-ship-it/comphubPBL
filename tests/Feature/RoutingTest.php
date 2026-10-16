@@ -12,6 +12,7 @@ use App\Models\Event;
 use App\Models\ProviderProfile;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTruncation;
+use Illuminate\Support\Facades\RateLimiter;
 use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\Attributes\Test;
 use Tests\TestCase;
@@ -208,16 +209,16 @@ class RoutingTest extends TestCase
         // Draf sendiri boleh disunting. Kegiatan yang sudah tayang TIDAK,
         // dan itu diperiksa EventPolicy::update().
         $this->actingAs($this->providerUser)
-            ->get('/kegiatan/saya/'.$this->draft->id.'/sunting')
+            ->get('/dasbor/penyelenggara/kegiatan/'.$this->draft->id.'/sunting')
             ->assertSuccessful();
 
         $this->actingAs($this->providerUser)
-            ->get('/kegiatan/saya/'.$this->published->id.'/sunting')
+            ->get('/dasbor/penyelenggara/kegiatan/'.$this->published->id.'/sunting')
             ->assertForbidden();
 
         // ID yang tidak ada milik siapa pun -> 404, bukan 403.
         $this->actingAs($this->providerUser)
-            ->get('/kegiatan/saya/999999/sunting')
+            ->get('/dasbor/penyelenggara/kegiatan/999999/sunting')
             ->assertNotFound();
     }
 
@@ -240,7 +241,7 @@ class RoutingTest extends TestCase
         $rahasia->forceFill(['provider_profile_id' => $otherProfile->id])->save();
 
         $this->actingAs($this->providerUser)
-            ->get('/kegiatan/saya/'.$rahasia->id.'/sunting')
+            ->get('/dasbor/penyelenggara/kegiatan/'.$rahasia->id.'/sunting')
             ->assertNotFound();
     }
 
@@ -276,11 +277,40 @@ class RoutingTest extends TestCase
     #[Test]
     public function membuka_halaman_kegiatan_menambah_penghitung_tayangan(): void
     {
+        $this->resetViewLimiter();
+
         $before = $this->published->view_count;
 
         $this->get('/kegiatan/'.$this->published->slug)->assertOk();
 
         $this->assertSame($before + 1, $this->published->fresh()->view_count);
+    }
+
+    /**
+     * Orang yang memuat ulang halaman sepuluh kali tetap satu orang.
+     *
+     * Rate limiter memakai cache, dan cache tidak ikut terpotong oleh
+     * DatabaseTruncation — jadi tanpa pembersihan eksplisit, test lain
+     * yang membuka halaman yang sama bisa membuat test ini gagal bukan
+     * karena kodenya salah.
+     */
+    #[Test]
+    public function memuat_ulang_berulang_hanya_dihitung_satu_kali(): void
+    {
+        $this->resetViewLimiter();
+
+        $before = $this->published->view_count;
+
+        $this->get('/kegiatan/'.$this->published->slug)->assertOk();
+        $this->get('/kegiatan/'.$this->published->slug)->assertOk();
+        $this->get('/kegiatan/'.$this->published->slug)->assertOk();
+
+        $this->assertSame($before + 1, $this->published->fresh()->view_count);
+    }
+
+    private function resetViewLimiter(): void
+    {
+        RateLimiter::clear('event-view:127.0.0.1:'.$this->published->id);
     }
 
     #[Test]

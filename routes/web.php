@@ -164,43 +164,50 @@ Route::middleware(['auth', 'role:user'])->group(function (): void {
 | Penyedia
 |--------------------------------------------------------------------------
 |
-| verified TIDAK dipasang di seluruh grup. Draf boleh dibuat sebelum
-| verifikasi selesai — itu memberi waktu bagi organisasi untuk menyiapkan
-| kegiatan sambil menunggu. Yang terkunci adalah pengajuan dan
-| dashboard statistik, yang butuh kontak resmi yang sudah diperiksa.
+| Middleware verified TIDAK dipasang di seluruh grup. Alasannya sederhana:
+| nama organisasi yang belum diperiksa tidak boleh ikut masuk ke halaman
+| publik, dan halaman mana pun yang menampilkannya harus tetap bisa dibuka
+| pemilik akunnya sendiri untuk memperbaikinya. Yang terkunci adalah
+| pengajuan ke administrator dan statistik yang butuh kontak resmi.
 |
 */
 
-Route::middleware(['auth', 'role:provider'])->group(function (): void {
-    // PENTING: URL ini TIDAK boleh berada di bawah /penyelenggara/...
-    // Rute publik /penyelenggara/{slug} dibuat lebih dulu dan akan
-    // menangkap /penyelenggara/dasbor sebagai slug "dasbor", sehingga
-    // pengunjung yang belum masuk mendapat 404 alih-alih diarahkan ke
-    // halaman masuk. Rute di bawah /dasbor/ bebas tabrakan.
-    Route::get('/dasbor/penyelenggara', ProviderDashboardController::class)
-        ->name('provider.dashboard');
+Route::middleware(['auth', 'role:provider'])
+    ->prefix('dasbor/penyelenggara')
+    ->group(function (): void {
+        // PENTING: SELURUH area penyedia hidup di bawah /dasbor/...
+        //
+        // Dua alasan, keduanya soal rute publik yang dibuat lebih dulu:
+        //   1. /penyelenggara/{slug} akan menangkap /penyelenggara/dasbor
+        //      sebagai slug "dasbor" — pengunjung yang belum masuk lalu
+        //      mendapat 404, bukan diarahkan ke halaman masuk.
+        //   2. /kegiatan/{event} akan menangkap /kegiatan/saya sebagai slug
+        //      "saya" — daftar kegiatan penyedia jadi tidak bisa dibuka sama
+        //      sekali. Karena kedua rute publik terdaftar lebih dulu,
+        //      pemindahannya tidak akan menolong;_prefiksnya yang harus beda.
+        Route::get('/', ProviderDashboardController::class)
+            ->name('provider.dashboard');
 
-    Route::get('/profil-organisasi', [ProviderProfileController::class, 'edit'])
-        ->name('provider.profile.edit');
-    Route::put('/profil-organisasi', [ProviderProfileController::class, 'update'])
-        ->name('provider.profile.update');
+        Route::get('/profil-organisasi', [ProviderProfileController::class, 'edit'])
+            ->name('provider.profile.edit');
+        Route::put('/profil-organisasi', [ProviderProfileController::class, 'update'])
+            ->name('provider.profile.update');
 
-    // Draf: boleh tanpa verifikasi.
-    Route::get('/kegiatan/saya', [ProviderEventController::class, 'index'])->name('provider.events.index');
-    Route::get('/kegiatan/saya/baru', [ProviderEventController::class, 'create'])->name('provider.events.create');
-    Route::post('/kegiatan/saya', [ProviderEventController::class, 'store'])->name('provider.events.store');
-    Route::get('/kegiatan/saya/{event:id}/sunting', [ProviderEventController::class, 'edit'])->name('provider.events.edit');
-    Route::put('/kegiatan/saya/{event:id}', [ProviderEventController::class, 'update'])->name('provider.events.update');
-    Route::get('/kegiatan/saya/{event:id}', [ProviderEventController::class, 'show'])->name('provider.events.show');
-    Route::delete('/kegiatan/saya/{event:id}', [ProviderEventController::class, 'destroy'])->name('provider.events.destroy');
+        Route::get('/kegiatan', [ProviderEventController::class, 'index'])->name('provider.events.index');
+        Route::get('/kegiatan/baru', [ProviderEventController::class, 'create'])->name('provider.events.create');
+        Route::post('/kegiatan', [ProviderEventController::class, 'store'])->name('provider.events.store');
+        Route::get('/kegiatan/{event:id}/sunting', [ProviderEventController::class, 'edit'])->name('provider.events.edit');
+        Route::put('/kegiatan/{event:id}', [ProviderEventController::class, 'update'])->name('provider.events.update');
+        Route::get('/kegiatan/{event:id}', [ProviderEventController::class, 'show'])->name('provider.events.show');
+        Route::delete('/kegiatan/{event:id}', [ProviderEventController::class, 'destroy'])->name('provider.events.destroy');
 
-    // Pengajuan: hanya setelah verifikasi.
-    Route::middleware('verified')->group(function (): void {
-        Route::post('/kegiatan/saya/{event:id}/ajukan', [ProviderEventController::class, 'submit'])
-            ->middleware('throttle:event-submit')
-            ->name('provider.events.submit');
+        // Pengajuan ke administrator: hanya setelah verifikasi.
+        Route::middleware('verified')->group(function (): void {
+            Route::post('/kegiatan/{event:id}/ajukan', [ProviderEventController::class, 'submit'])
+                ->middleware('throttle:event-submit')
+                ->name('provider.events.submit');
+        });
     });
-});
 
 /*
 |--------------------------------------------------------------------------

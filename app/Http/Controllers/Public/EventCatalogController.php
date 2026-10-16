@@ -11,6 +11,7 @@ use App\Models\Event;
 use App\Repositories\Contracts\EventRepository;
 use App\Services\BookmarkService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 
 /**
@@ -83,7 +84,7 @@ class EventCatalogController extends Controller
      * diabaikan sepenuhnya, sehingga mengubahnya lewat devtools tidak
      * mengubah siapa yang menyimpan (Panduan §6.5).
      */
-    public function store(Request $request, Event $event, BookmarkService $bookmarks): RedirectResponse
+    public function store(Request $request, Event $event, BookmarkService $bookmarks): RedirectResponse|JsonResponse
     {
         $user = $request->user();
 
@@ -93,14 +94,16 @@ class EventCatalogController extends Controller
 
         $saved = $bookmarks->add($user, $event);
 
-        return back()->with(
+        return $this->bookmarkResponse(
+            $request,
+            $saved,
             $saved ? 'success' : 'error',
             $saved ? 'Kegiatan disimpan ke daftar Tersimpan.' : 'Kegiatan ini sudah ada di daftar Tersimpan.',
         );
     }
 
     /** Batalkan penyimpanan. */
-    public function destroy(Request $request, Event $event, BookmarkService $bookmarks): RedirectResponse
+    public function destroy(Request $request, Event $event, BookmarkService $bookmarks): RedirectResponse|JsonResponse
     {
         $user = $request->user();
 
@@ -108,9 +111,38 @@ class EventCatalogController extends Controller
 
         $removed = $bookmarks->remove($user, $event);
 
-        return back()->with(
+        return $this->bookmarkResponse(
+            $request,
+            ! $removed,
             'success',
             $removed ? 'Kegiatan dihapus dari daftar Tersimpan.' : 'Kegiatan itu memang tidak ada di daftar Tersimpan.',
         );
+    }
+
+    /**
+     * Dua pemanggil, dua bentuk jawaban.
+     *
+     * Tombol Simpan di halaman bekerja tanpa memuat ulang lewat
+     * fetch, dan fetch itu mengirim header Accept: application/json. Kalau
+     * jawabannya tetap redirect, peramban menerima HTML yang tidak bisa
+     * diurai sebagai JSON dan tombolnya diam-diam tidak berubah status.
+     *
+     * Form biasa tanpa JavaScript tetap menerima redirect beserta
+     * pesannya, sehingga tidak ada jalur yang kehilangan umpan balik.
+     */
+    private function bookmarkResponse(
+        Request $request,
+        bool $saved,
+        string $flashType,
+        string $message,
+    ): RedirectResponse|JsonResponse {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'saved' => $saved,
+                'message' => $message,
+            ]);
+        }
+
+        return back()->with($flashType, $message);
     }
 }

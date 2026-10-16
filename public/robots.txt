@@ -1,2 +1,13 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /dasbor
+Disallow: /dasbor/
+Disallow: /profil
+Disallow: /profil-organisasi
+Disallow: /kegiatan/saya
+Disallow: /masuk
+Disallow: /daftar
+Disallow: /lupa-sandi
+Allow: /
+
+# Katalog dan halaman statis boleh diindeks supaya bisa ditemukan lewat mesin pencari.

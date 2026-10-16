@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 225" role="img" aria-label="Gambar kegiatan belum tersedia">
+  <rect width="400" height="225" fill="#eceef2"/>
+  <path d="M0 225V150l60-40 55 35 50-45 70 55 45-35 120 70v35H0z" fill="#d5d9e2"/>
+  <circle cx="320" cy="52" r="22" fill="#bcd3ff"/>
+  <path d="M0 225V175h400v50H0z" fill="#c9cedb"/>
+  <text x="200" y="118" text-anchor="middle" font-family="system-ui,sans-serif"
+        font-size="15" font-weight="600" fill="#667287">Gambar kegiatan belum tersedia</text>
+</svg>

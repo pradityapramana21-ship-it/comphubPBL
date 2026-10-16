@@ -49,8 +49,10 @@ class ProviderEventController extends Controller
 
         abort_if($profile === null, 403);
 
-        // Draf boleh dibuat meski belum terverifikasi: itu memberi jalan
-        // untuk menyiapkan kegiatan selagi verifikasi berjalan.
+        // Buat kegiatan hanya untuk penyedia yang sudah terverifikasi.
+        // Menunggu verifikasi bukan alasan membuka jalur sodium: tanpa
+        // verifikasi, nama organisasi yang muncul di halaman pengajuan
+        // tidak bisa dipertanggungjawabkan ke siapa pun.
         $this->authorize('create', Event::class);
 
         return view('provider.events.create', [

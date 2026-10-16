@@ -94,11 +94,22 @@ class BookmarkService
      */
     public function savedMap(User $user, array $eventIds): array
     {
-        $saved = $this->bookmarks->eventIdsFor($user->id, $eventIds);
+        // Id yang bukan integer dibuang lebih dulu. Kumpulan kegiatan
+        // bisa saja berisi baris tanpa id kalau sorgenya salah pilih
+        // kolom, dan itu tidak tidak boleh menjatuhkan seluruh halaman
+        // karena satu nilai(null).
+        $ids = array_values(array_filter(
+            $eventIds,
+            static fn (mixed $id): bool => is_int($id) || (is_string($id) && ctype_digit($id)),
+        ));
+
+        $ids = array_map(static fn (int|string $id): int => (int) $id, $ids);
+
+        $saved = $this->bookmarks->eventIdsFor($user->id, $ids);
 
         return array_map(
             static fn (int $id): bool => in_array($id, $saved, true),
-            $eventIds,
+            $ids,
         );
     }
 

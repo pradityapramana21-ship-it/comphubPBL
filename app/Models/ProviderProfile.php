@@ -179,7 +179,15 @@ class ProviderProfile extends Model
         return $url === '' ? null : (parse_url($url, PHP_URL_HOST) ?: $url);
     }
 
-    public function slug(): string
+    /**
+     * Slug URL organisasi, dihitung dari namanya.
+     *
+     * Sengaja BUKAN bernama `slug()`: tabel provider_profiles tidak punya
+     * kolom slug, dan Eloquent memperlakukan method bernama alike sebagai
+     * relasi. Kalau namanya `slug()`, setiap `$profile->slug` di view akan
+     * melempar "must return a relationship instance".
+     */
+    public function routeSlug(): string
     {
         return Str::slug($this->organization_name);
     }

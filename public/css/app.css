@@ -1,0 +1,92 @@
+/*
+|----------------------------------------------------------------------------
+| Gaya dasar
+|----------------------------------------------------------------------------
+|
+| Token dan komponen dimuat dari layout. File ini hanya berisi reset
+| kecil, tipografi dasar, dan penanda utilitas yang dipakai di banyak
+| halaman.
+|
+| Urutan file penting: tokens -> components -> app. Token yang ditulis
+| belakangan menimpa yang lebih awal, dan semua komponen boleh
+| token boleh dipakai tanpa urutan.
+|
+*/
+
+body {
+    background: var(--color-surface-alt);
+    color: var(--color-text);
+    font-family: var(--font-sans);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-base);
+    -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, h4, h5, h6 { font-weight: var(--font-weight-semibold); line-height: var(--line-height-tight); }
+h1 { font-size: var(--font-size-4xl); }
+h2 { font-size: var(--font-size-3xl); }
+h3 { font-size: var(--font-size-2xl); }
+
+a { color: var(--color-primary); text-decoration: none; }
+a:hover { color: var(--color-primary-hover); text-decoration: underline; }
+
+/* Fokus keyboard harus selalu terlihat. Menghapus outline tanpa
+   menggantinya membuat situs mustahil dinavigasi dengan keyboard. */
+:focus-visible {
+    outline: 3px solid var(--brand-400);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+/* Lencana penghitung di navbar */
+.counter {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: var(--radius-pill);
+    background: var(--color-danger);
+    color: var(--color-text-inverse);
+    font-size: 11px;
+    font-weight: var(--font-weight-bold);
+    line-height: 1;
+}
+
+/* Judul bagian halaman */
+.page-head { margin-bottom: var(--space-6); }
+.page-head__title { font-size: var(--font-size-3xl); margin: 0 0 var(--space-1); }
+.page-head__subtitle { color: var(--color-text-muted); margin: 0; }
+
+/* Tautan lewati navigasi — yang pertama kali fokus saat memakai keyboard */
+.skip-link {
+    position: absolute;
+    left: -9999px;
+    top: 0;
+    z-index: 2000;
+    padding: var(--space-2) var(--space-4);
+    background: var(--color-primary);
+    color: var(--color-text-inverse);
+    border-radius: 0 0 var(--radius-md) 0;
+}
+.skip-link:focus { left: 0; color: var(--color-text-inverse); }
+
+/* Teks panjang yang tidak boleh membakar tata letak */
+.text-wrap-anywhere { overflow-wrap: anywhere; }
+
+/* Area kode/direktori */
+.mono { font-family: var(--font-mono); font-size: var(--font-size-sm); }
+
+/* Aturan utilitas yang dipakai berulang dan layak jadi kelas */
+.text-muted-soft { color: var(--color-text-muted); }
+.stack-1 > * + * { margin-top: var(--space-1); }
+.stack-2 > * + * { margin-top: var(--space-2); }
+.stack-4 > * + * { margin-top: var(--space-4); }
+.stack-6 > * + * { margin-top: var(--space-6); }
+
+/* Penyesuaian layar kecil */
+@media (max-width: 767.98px) {
+    h1 { font-size: var(--font-size-3xl); }
+    .hide-mobile { display: none !important; }
+}

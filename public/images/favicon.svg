@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="LombaKampus">
+  <rect width="32" height="32" rx="7" fill="#1f47d8"/>
+  <path d="M16 7l9 4.5H7L16 7z" fill="#fff"/>
+  <path d="M10 14h2.5v8H10zM19.5 14H22v8h-2.5z" fill="#fff" opacity=".9"/>
+  <path d="M9 24h14v2.2H9z" fill="#fff"/>
+</svg>
