@@ -62,6 +62,46 @@ class AppServiceProvider extends ServiceProvider
         foreach (self::REPOSITORIES as $contract => $implementation) {
             $this->app->bind($contract, $implementation);
         }
+
+        $this->registerModerationRules();
+    }
+
+    /**
+     * Daftar aturan moderasi yang dijalankan.
+     *
+     * Satu daftar, satu tempat. Menambah aturan berarti menambah satu baris
+     * di sini — kode aturan lain tidak perlu disentuh, dan urutannya bisa
+     * dibaca admin.
+     *
+     * @var list<class-string<ModerationRule>>
+     */
+    private const MODERATION_RULES = [
+        \App\Services\Moderation\Rules\DateSanityRule::class,
+        \App\Services\Moderation\Rules\ContentQualityRule::class,
+        \App\Services\Moderation\Rules\SuspiciousUrlRule::class,
+        \App\Services\Moderation\Rules\ContactLeakRule::class,
+        \App\Services\Moderation\Rules\DuplicateEventRule::class,
+        \App\Services\Moderation\Rules\RateLimitRule::class,
+        \App\Services\Moderation\Rules\BlockedKeywordRule::class,
+    ];
+
+    private function registerModerationRules(): void
+    {
+        foreach (self::MODERATION_RULES as $rule) {
+            $this->app->singleton($rule);
+        }
+
+        $this->app->bind(
+            \App\Services\ModerationService::class,
+            fn ($app): \App\Services\ModerationService => new \App\Services\ModerationService(
+                $app->make(ModerationLogRepository::class),
+                $app->make(EventRepository::class),
+                ...array_map(
+                    static fn (string $rule): \App\Services\Moderation\ModerationRule => $app->make($rule),
+                    self::MODERATION_RULES,
+                ),
+            ),
+        );
     }
 
     public function boot(): void
