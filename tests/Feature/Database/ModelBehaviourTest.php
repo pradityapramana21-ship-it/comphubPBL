@@ -307,17 +307,18 @@ class ModelBehaviourTest extends TestCase
     {
         $event = $this->makeEvent();
 
-        // Penulisan lewat query builder, bukan attach() — lihat catatan
-        // pada Event::bookmarkedBy(). Ini yang akan dilakukan
-        // BookmarkRepository di Batch 3.
-        DB::table('bookmarks')->insert([
-            'user_id' => $this->normalUser->id,
-            'event_id' => $event->id,
-            'created_at' => now(),
-        ]);
+        // Lewat BookmarkService, bukan query builder mentah: itu jalur
+        // produksi yang sekaligus-maintain kolom cache bookmark_count.
+        // Menyisipkan langsung ke tabel hanya mengisi tabelnya, sehingga
+        // savedCount() yang membaca cache akan tetap melaporkan 0.
+        $bookmarks = $this->app->make(\App\Services\BookmarkService::class);
 
+        $this->assertTrue($bookmarks->add($this->normalUser, $event));
         $this->assertTrue($this->normalUser->bookmarkedEvents()->where('events.id', $event->id)->exists());
-        $this->assertSame(1, $event->savedCount());
+        $this->assertSame(1, $event->fresh()->savedCount());
+
+        $this->assertFalse($bookmarks->add($this->normalUser, $event), 'Klik kedua tidak menambah.');
+        $this->assertSame(1, $event->fresh()->savedCount());
     }
 
     #[Test]

@@ -5,9 +5,9 @@ declare(strict_types=1);
 namespace App\Http\Controllers\Public;
 
 use App\DataTransferObjects\CatalogFilter;
+use App\Enums\EventStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
-use App\Repositories\Contracts\BookmarkRepository;
 use App\Repositories\Contracts\EventRepository;
 use App\Services\BookmarkService;
 use Illuminate\Http\Request;
@@ -44,12 +44,19 @@ class EventCatalogController extends Controller
      * memberi apa-apa — query-nya sendiri sudah dibatasi status
      * (Panduan §6.5, TC-USER-02).
      */
-    public function show(Request $request, string $slug, EventRepository $events, BookmarkService $bookmarks): \Illuminate\View\View
+    public function show(Request $request, Event $event, EventRepository $events, BookmarkService $bookmarks): \Illuminate\View\View
     {
-        $event = $events->findPublishedBySlug($slug);
+        // Binding berdasarkan slug akan menemukan kegiatan apa pun —
+        // termasuk draf milik orang lain. Karena itu statusnya diperiksa
+        // di sini, dan jawabannya selalu 404 (bukan 403) supaya tidak
+        // membocorkan bahwa kegiatan itu ada.
+        abort_if(
+            $event->status !== EventStatus::Approved,
+            404,
+            'Kegiatan tidak ditemukan atau belum ditayangkan.',
+        );
 
-        // 404, bukan 403: bagi pengunjung halaman ini memang tidak ada.
-        abort_if($event === null, 404, 'Kegiatan tidak ditemukan atau belum ditayangkan.');
+        $event->loadMissing(['providerProfile', 'category']);
 
         $user = $request->user();
 

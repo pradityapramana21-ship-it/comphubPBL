@@ -35,6 +35,22 @@ class Event extends Model
     use HasFactory;
 
     /**
+     * Default di level model untuk kolom yang punya DEFAULT di database.
+     *
+     * Tanpa ini, instance yang baru dibuat punya view_count = null sampai
+     * di-refresh — jadi kode yang membacanya sebelum refresh akan mendapat
+     * null, bukan 0. Pola yang sama sudah pernah menimbulkan bug pada
+     * User::account_status dan ProviderProfile::verification_status.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'view_count' => 0,
+        'bookmark_count' => 0,
+        'risk_score' => 0,
+    ];
+
+    /**
      * @return array<string, string>
      */
     protected function casts(): array

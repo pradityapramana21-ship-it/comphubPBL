@@ -32,8 +32,6 @@ class UpdateEventRequest extends FormRequest
     /** @return array<string, array<int, mixed>> */
     public function rules(): array
     {
-        $eventId = $this->route('event')?->id;
-
         return [
             'category_id' => ['required', 'integer', Rule::exists('categories', 'id')->where('is_active', true)],
             'title' => ['required', 'string', 'min:15', 'max:180'],

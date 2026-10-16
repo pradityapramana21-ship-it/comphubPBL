@@ -42,7 +42,10 @@ class RecordEventView
         if (RateLimiter::attempt($key.':'.$slug, 1, static fn (): bool => true, 30)) {
             $event = $request->route('event');
 
-            if ($event !== null && method_exists($event, 'registerView')) {
+            // Hanya kegiatan yang benar-benar tayang yang dihitung. Kalau
+            // tidak, satu orang bisa menaikkan angka dengan membuka URL
+            // draf milik orang lain berulang kali.
+            if ($event instanceof \App\Models\Event && $event->isPublished()) {
                 $event->registerView();
             }
         }

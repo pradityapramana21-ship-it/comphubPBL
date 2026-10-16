@@ -76,6 +76,8 @@ class ProviderEventController extends Controller
 
     public function show(Request $request, Event $event, EventService $events): View
     {
+        $event = $this->ownEvent($event);
+
         $this->authorize('view', $event);
 
         return view('provider.events.show', [
@@ -86,6 +88,8 @@ class ProviderEventController extends Controller
 
     public function edit(Request $request, Event $event): View
     {
+        $event = $this->ownEvent($event);
+
         $this->authorize('update', $event);
 
         return view('provider.events.edit', [
@@ -100,6 +104,8 @@ class ProviderEventController extends Controller
         $profile = $this->profileFor($request->user());
 
         abort_if($profile === null, 403);
+
+        $event = $this->ownEvent($event);
 
         // Slug hanya dibuat ulang kalau judul berubah. Kalau tidak, tautan
         // yang sudah dibagikan orang tetap hidup.
@@ -127,6 +133,8 @@ class ProviderEventController extends Controller
 
         abort_if($profile === null, 403);
 
+        $event = $this->ownEvent($event);
+
         $this->authorize('submit', $event);
 
         $submitted = $events->submit($profile, $event);
@@ -144,12 +152,35 @@ class ProviderEventController extends Controller
         return redirect()->route('provider.events.show', $submitted);
     }
 
+    /**
+     * Pastikan kegiatan ini milik organisasi yang sedang login.
+     *
+     * Mengembalikan 404, BUKAN 403, dan itu disengaja. Kalau kegiatan
+     * milik orang lain diberi 403, jawabannya sudah mengonfirmasi bahwa
+     * kegiatan itu ADA. Dengan 404 untuk keduanya, penyedia lain dan
+     * pengunjung awam tidak bisa dibedakan (Panduan §6.5, TC-PROV-02).
+     */
+    private function ownEvent(Event $event): Event
+    {
+        $profile = $this->profileFor(auth()->user());
+
+        abort_if(
+            $profile === null || $event->provider_profile_id !== $profile->id,
+            404,
+            'Kegiatan tidak ditemukan.',
+        );
+
+        return $event;
+    }
+
     /** Menarik kegiatan yang belum tayang. */
     public function destroy(Request $request, Event $event, EventService $events): RedirectResponse
     {
         $profile = $this->profileFor($request->user());
 
         abort_if($profile === null, 403);
+
+        $event = $this->ownEvent($event);
 
         $this->authorize('delete', $event);
 
