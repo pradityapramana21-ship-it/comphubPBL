@@ -107,8 +107,8 @@ Setelah `php artisan migrate --seed`:
 
 | Peran | Email | Password | Condition |
 |---|---|---|---|
-| Admin | `admin@lomba.test` | `password` | Lihat seluruh antrean |
-| Admin | `admin2@lomba.test` | `password` | Admin kedua, untuk menguji jejak audit |
+| Admin | `-------` | `-------` | Lihat seluruh antrean |
+| Admin | `---------` | `-------` | Admin kedua, untuk menguji jejak audit |
 | Provider | `bem@lomba.test` | `password` | **Terverifikasi** |
 | Provider | `himpunan@lomba.test` | `password` | **Menunggu verifikasi** |
 | Provider | `salsa@lomba.test` | `password` | **Ditolak**, dengan alasan tersimpan |
