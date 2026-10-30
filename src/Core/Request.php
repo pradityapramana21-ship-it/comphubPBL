@@ -22,6 +22,7 @@ final class Request
         private array $headers = [],
         private array $files = [],
         private readonly array $server = [],
+        private readonly string $queryString = '',
     ) {
     }
 
@@ -57,8 +58,10 @@ final class Request
         }
 
         $method = self::resolveMethod($method, $input);
+        $queryString = parse_url($uri, PHP_URL_QUERY);
+        $queryString = is_string($queryString) ? $queryString : '';
 
-        return new self($method, self::normalisePath($path), $input, $headers, $_FILES, $_SERVER);
+        return new self($method, self::normalisePath($path), $input, $headers, $_FILES, $_SERVER, $queryString);
     }
 
     /**
@@ -90,6 +93,7 @@ final class Request
             $headers,
             $files,
             ['REMOTE_ADDR' => '127.0.0.1'],
+            is_string($queryString) ? $queryString : '',
         );
     }
 
@@ -101,6 +105,11 @@ final class Request
     public function path(): string
     {
         return $this->path;
+    }
+
+    public function fullPath(): string
+    {
+        return $this->path . ($this->queryString !== '' ? '?' . $this->queryString : '');
     }
 
     public function input(string $key, mixed $default = null): mixed

@@ -6,6 +6,7 @@ use App\Core\Router;
 use App\Http\Controllers\Admin\AdminAuditController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminEventController;
+use App\Http\Controllers\Admin\AdminModerationController;
 use App\Http\Controllers\Admin\AdminProviderController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminUserController;
@@ -15,6 +16,8 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\BookmarkController;
 use App\Http\Controllers\Public\EventCatalogController;
+use App\Http\Controllers\Public\EventSubmissionController;
+use App\Http\Controllers\Public\MediaController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\ProviderDirectoryController;
 use App\Http\Controllers\Public\StaticPageController;
@@ -34,12 +37,22 @@ $router->get('/kontak', [StaticPageController::class, 'contact'])->name('pages.c
 $router->get('/penyelenggara', [ProviderDirectoryController::class, 'index'])->name('providers.index');
 $router->get('/penyelenggara/{slug}', [ProviderDirectoryController::class, 'show'])->name('providers.show');
 
+$router->get('/lomba', [EventCatalogController::class, 'competition'])->name('events.competition');
+$router->get('/webinar', [EventCatalogController::class, 'webinar'])->name('events.webinar');
+$router->get('/seminar', [EventCatalogController::class, 'seminar'])->name('events.seminar');
 $router->get('/kegiatan', [EventCatalogController::class, 'index'])->name('events.index');
 $router->post('/kegiatan/{event}/bookmark', [BookmarkController::class, 'store'])
     ->name('events.bookmark.store')->middleware('auth', 'throttle:bookmark');
 $router->delete('/kegiatan/{event}/bookmark', [BookmarkController::class, 'destroy'])
     ->name('events.bookmark.destroy')->middleware('auth');
 $router->get('/kegiatan/{slug}', [EventCatalogController::class, 'show'])->name('events.show');
+$router->get('/media/poster/{event:id}', [MediaController::class, 'poster'])->name('media.poster');
+$router->get('/media/guidebook/{event:id}', [MediaController::class, 'guidebook'])->name('media.guidebook');
+$router->get('/ajukan', [EventSubmissionController::class, 'show'])->name('submissions.create');
+$router->post('/ajukan', [EventSubmissionController::class, 'submit'])->name('submissions.store');
+$router->get('/ajukan/berhasil', [EventSubmissionController::class, 'success'])->name('submissions.success');
+$router->get('/pengajuan/{token}', [EventSubmissionController::class, 'edit'])->name('submissions.edit');
+$router->post('/pengajuan/{token}', [EventSubmissionController::class, 'update'])->name('submissions.update');
 
 $router->get('/masuk', [AuthController::class, 'showLogin'])->name('auth.login')->middleware('guest');
 $router->post('/masuk', [AuthController::class, 'login'])->name('auth.login.attempt')->middleware('guest');
@@ -71,6 +84,13 @@ $router->get('/admin/pengguna/{user:id}', [AdminUserController::class, 'edit'])-
 $router->post('/admin/pengguna/{user:id}', [AdminUserController::class, 'update'])->name('admin.users.update')->middleware('role:admin');
 $router->post('/admin/pengguna/{user:id}/hapus', [AdminUserController::class, 'destroy'])->name('admin.users.destroy')->middleware('role:admin');
 
+$router->get('/admin/moderasi', [AdminModerationController::class, 'index'])->name('admin.moderation.index')->middleware('role:admin');
+$router->get('/admin/moderasi/{event:id}', [AdminModerationController::class, 'show'])->name('admin.moderation.show')->middleware('role:admin');
+$router->post('/admin/moderasi/{event:id}/setujui', [AdminModerationController::class, 'approve'])->name('admin.moderation.approve')->middleware('role:admin');
+$router->post('/admin/moderasi/{event:id}/tolak', [AdminModerationController::class, 'reject'])->name('admin.moderation.reject')->middleware('role:admin');
+$router->post('/admin/moderasi/{event:id}/minta-revisi', [AdminModerationController::class, 'requestChanges'])->name('admin.moderation.revision')->middleware('role:admin');
+$router->post('/admin/moderasi/{event:id}/token', [AdminModerationController::class, 'reissueToken'])->name('admin.moderation.token')->middleware('role:admin');
+$router->post('/admin/moderasi/{event:id}/arsipkan', [AdminModerationController::class, 'archive'])->name('admin.moderation.archive')->middleware('role:admin');
 $router->get('/admin/kegiatan', [AdminEventController::class, 'index'])->name('admin.events.index')->middleware('role:admin');
 $router->get('/admin/kegiatan/baru', [AdminEventController::class, 'create'])->name('admin.events.create')->middleware('role:admin');
 $router->post('/admin/kegiatan', [AdminEventController::class, 'store'])->name('admin.events.store')->middleware('role:admin');

@@ -34,6 +34,11 @@ interface EventRepository
 
     public function delete(int $id): void;
 
+    public function archive(int $id): void;
+
+    /** @return list<array{value: string, label: string}> */
+    public function availableMonths(): array;
+
     public function countSubmissionsSince(int $providerProfileId, \DateTimeInterface $since): int;
 
     /** @return list<array<string, mixed>> */
@@ -68,4 +73,13 @@ interface EventRepository
     public function findById(int $id): ?array;
 
     public function incrementViewCount(int $id): void;
+
+    public function setRevisionToken(int $eventId, string $hash, string $expiresAt): void;
+
+    /** @return array<string, mixed>|null */
+    public function findRevisionEventByTokenHash(string $hash): ?array;
+
+    public function markRevisionTokenUsed(int $eventId): void;
+
+    public function revokeRevisionToken(int $eventId): void;
 }

@@ -149,20 +149,84 @@ test('auth remember cookie restores the session and logout clears it', function 
     assertFalse(app()->auth()->check());
 });
 
-test('auth ignores open redirect targets after login', function (): void {
+test('auth preserves safe next paths with query strings', function (): void {
     authReset();
     $user = authUser('arah-' . uniqid() . '@example.test');
 
     $response = request('POST', '/masuk', [
         'email' => $user['email'],
         'password' => 'secret123',
-        'next' => '//evil.example/path',
+        'next' => '/kegiatan?q=lomba&status=open',
         'website' => '',
     ]);
 
     assertSame(302, $response->status());
-    assertNotContains('evil.example', (string) $response->header('Location'));
-    assertContains('/dasbor', (string) $response->header('Location'));
+    assertContains('/kegiatan?q=lomba&status=open', (string) $response->header('Location'));
+});
+
+test('auth rejects hostile next targets after login', function (): void {
+    authReset();
+    $user = authUser('arah-aman-' . uniqid() . '@example.test');
+    $targets = [
+        '//evil.example/path',
+        '/%2f%2fevil.example/path',
+        '/\\evil.example/path',
+        'https://evil.example/path',
+        "/kegiatan\r\nLocation: https://evil.example",
+    ];
+
+    foreach ($targets as $target) {
+        $response = request('POST', '/masuk', [
+            'email' => $user['email'],
+            'password' => 'secret123',
+            'next' => $target,
+            'website' => '',
+        ]);
+
+        $location = (string) $response->header('Location');
+        assertSame(302, $response->status());
+        assertNotContains('evil.example', $location);
+        assertContains('/dasbor', $location);
+        signOut();
+    }
+});
+
+test('auth routes admins home and refuses provider accounts', function (): void {
+    authReset();
+    $admin = authUser('admin-arah-' . uniqid() . '@example.test', role: UserRole::Admin);
+    $adminLogin = request('POST', '/masuk', [
+        'email' => $admin['email'],
+        'password' => 'secret123',
+        'website' => '',
+    ]);
+    assertContains('/admin', (string) $adminLogin->header('Location'));
+
+    $guestPage = request('GET', '/masuk');
+    assertSame(302, $guestPage->status());
+    assertContains('/admin', (string) $guestPage->header('Location'));
+
+    authReset();
+    $provider = authUser('provider-tolak-' . uniqid() . '@example.test', role: UserRole::Provider);
+    $failure = assertThrows(ValidationException::class, fn () => request('POST', '/masuk', [
+        'email' => $provider['email'],
+        'password' => 'secret123',
+        'website' => '',
+    ]));
+    assertSame(['Email atau kata sandi salah.'], $failure->errors()['email'] ?? []);
+    assertFalse(app()->auth()->check());
+});
+
+test('auth middleware keeps the full requested path in next', function (): void {
+    signOut();
+    $_COOKIE = [];
+
+    $saved = request('GET', '/tersimpan?page=2');
+    assertSame(302, $saved->status());
+    assertContains('/masuk?next=%2Ftersimpan%3Fpage%3D2', (string) $saved->header('Location'));
+
+    $admin = request('GET', '/admin?tab=queue');
+    assertSame(302, $admin->status());
+    assertContains('/masuk?next=%2Fadmin%3Ftab%3Dqueue', (string) $admin->header('Location'));
 });
 
 test('auth password reset issues a one-hour token and replaces the password', function (): void {

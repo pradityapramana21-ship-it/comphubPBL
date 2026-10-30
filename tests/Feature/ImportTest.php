@@ -57,6 +57,8 @@ test('event importer rolls back dry-run and updates an existing slug in place', 
         assertTrue($event !== null);
         assertSame('https://sumber.example.test/' . $slug, $event['source_url']);
         assertSame('verified', $event['provider_verification_status']);
+        assertSame('competition', $event['event_type']);
+        assertSame('teknologi', $event['category_slug']);
 
         $again = $importer->import($file);
         assertSame(1, $again['updated']);

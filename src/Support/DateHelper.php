@@ -120,6 +120,13 @@ final class DateHelper
         return $this->local($moment)->format('Y-m-d');
     }
 
+    public function monthLabel(string $yearMonth): string
+    {
+        [$year, $month] = array_pad(array_map('intval', explode('-', $yearMonth)), 2, 0);
+
+        return (self::MONTHS_LONG[$month] ?? $yearMonth) . ' ' . $year;
+    }
+
     public function toIso(\DateTimeInterface $moment): string
     {
         return $this->local($moment)->format(\DateTimeInterface::ATOM);

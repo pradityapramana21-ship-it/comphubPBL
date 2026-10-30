@@ -10,6 +10,7 @@ use App\Core\Request;
 use App\Core\Response;
 use App\Core\View;
 use App\DataTransferObjects\CatalogFilter;
+use App\Enums\EventType;
 use App\Http\Controllers\Controller;
 use App\Repositories\Contracts\BookmarkRepository;
 use App\Repositories\Contracts\CategoryRepository;
@@ -30,12 +31,45 @@ final class EventCatalogController extends Controller
 
     public function index(Request $request): Response
     {
-        $filter = CatalogFilter::fromRequest($request);
+        return $this->catalog($request, null);
+    }
+
+    public function competition(Request $request): Response
+    {
+        return $this->catalog($request, EventType::Competition);
+    }
+
+    public function webinar(Request $request): Response
+    {
+        return $this->catalog($request, EventType::Webinar);
+    }
+
+    public function seminar(Request $request): Response
+    {
+        return $this->catalog($request, EventType::Seminar);
+    }
+
+    private function catalog(Request $request, ?EventType $type): Response
+    {
+        $source = CatalogFilter::fromRequest($request);
+        $filter = new CatalogFilter(
+            q: $source->q,
+            category: $source->category,
+            mode: $source->mode,
+            status: $source->status,
+            sort: $source->sort,
+            page: $source->page,
+            type: $type?->value ?? $source->type,
+            month: $source->month,
+        );
 
         return $this->renderPage('events/index', [
-            'title' => 'Kegiatan',
+            'title' => $type?->label() ?? 'Kegiatan',
             'filter' => $filter,
+            'eventType' => $type,
+            'types' => EventType::cases(),
             'categories' => $this->categories->allActive(),
+            'months' => $this->events->availableMonths(),
             'events' => $this->events->paginatePublicCatalog($filter),
         ]);
     }

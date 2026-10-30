@@ -45,3 +45,21 @@ test('router binds numeric id parameters only', function (): void {
     assertSame('ok', $router->dispatch(Request::create('GET', '/kegiatan/12'))->body());
     assertThrows(HttpException::class, static fn () => $router->dispatch(Request::create('GET', '/kegiatan/abc')));
 });
+
+test('catalog type routes render the Luarkampus shell', function (): void {
+    signOut();
+    $_COOKIE = [];
+
+    foreach (['/lomba' => 'Lomba', '/webinar' => 'Webinar', '/seminar' => 'Seminar'] as $path => $label) {
+        $response = request('GET', $path);
+        assertSame(200, $response->status(), $path);
+        $html = $response->body();
+        assertContains('site-header', $html);
+        assertContains('filter-sidebar', $html);
+        assertContains('month-tabs', $html);
+        assertContains('event-grid', $html);
+        assertContains($label, $html);
+        assertContains('Ajukan Kegiatan', $html);
+        assertNotContains('class="glass', $html);
+    }
+});

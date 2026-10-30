@@ -30,7 +30,7 @@ function guestEvent(string $suffix, array $overrides = []): array
 
     return $events->create($overrides + [
         'provider_profile_id' => $profile['id'],
-        'category_id' => (int) $categories->findBySlug('lomba')['id'],
+        'category_id' => (int) $categories->findBySlug('teknologi')['id'],
         'title' => 'Kegiatan ' . $suffix . ' ' . uniqid(),
         'slug' => 'kegiatan-' . $suffix . '-' . uniqid(),
         'description' => 'Deskripsi lengkap kegiatan ' . $suffix . '.',

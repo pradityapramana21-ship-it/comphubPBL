@@ -65,6 +65,15 @@ final class AuthService
             throw new ValidationException(['email' => ['Email atau kata sandi salah.']], ['email' => $email]);
         }
 
+        $role = $user['role'] ?? null;
+        $role = $role instanceof UserRole ? $role : UserRole::tryFrom((string) $role);
+
+        if (! in_array($role, [UserRole::User, UserRole::Admin], true)) {
+            $this->limiter->hit($key, (int) $limit['decay']);
+
+            throw new ValidationException(['email' => ['Email atau kata sandi salah.']], ['email' => $email]);
+        }
+
         $this->limiter->clear($key);
         $this->auth->login($user, $remember);
 

@@ -20,7 +20,7 @@ final class RoleMiddleware implements Middleware
     public function handle(Request $request, callable $next): Response
     {
         if (! $this->auth->check()) {
-            return Response::redirect(url('/masuk?next=' . rawurlencode($request->path())));
+            return Response::redirect(url('/masuk?next=' . rawurlencode($request->fullPath())));
         }
 
         if ($this->auth->role() !== UserRole::tryFrom($this->role)) {

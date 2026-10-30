@@ -15,6 +15,8 @@ final class CatalogFilter
         public readonly string $status = 'open',
         public readonly string $sort = 'newest',
         public readonly int $page = 1,
+        public readonly string $type = '',
+        public readonly string $month = '',
     ) {
     }
 
@@ -27,6 +29,8 @@ final class CatalogFilter
         $status = (string) $request->input('status', 'open');
         $sort = (string) $request->input('sort', 'newest');
         $page = max(1, (int) $request->input('page', 1));
+        $type = (string) $request->input('type', '');
+        $month = (string) $request->input('month', '');
 
         if (preg_match('/^[a-z0-9-]{1,80}$/', $category) !== 1) {
             $category = '';
@@ -36,15 +40,23 @@ final class CatalogFilter
             $mode = '';
         }
 
-        if (! in_array($status, ['open', 'closed', ...\App\Enums\EventStatus::values()], true)) {
+        if (! in_array($status, ['open', 'upcoming', 'closed', ...\App\Enums\EventStatus::values()], true)) {
             $status = 'open';
+        }
+
+        if (! in_array($type, \App\Enums\EventType::values(), true)) {
+            $type = '';
+        }
+
+        if (preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $month) !== 1) {
+            $month = '';
         }
 
         if (! in_array($sort, ['newest', 'deadline', 'popular'], true)) {
             $sort = 'newest';
         }
 
-        return new self($q, $category, $mode, $status, $sort, $page);
+        return new self($q, $category, $mode, $status, $sort, $page, $type, $month);
     }
 
     /** @return array<string, string|int> */
@@ -56,12 +68,15 @@ final class CatalogFilter
             'mode' => $this->mode,
             'status' => $this->status !== 'open' ? $this->status : '',
             'sort' => $this->sort !== 'newest' ? $this->sort : '',
+            'type' => $this->type,
+            'month' => $this->month,
         ], static fn (mixed $value): bool => $value !== '' && $value !== null);
     }
 
     public function isDefault(): bool
     {
         return $this->q === '' && $this->category === '' && $this->mode === ''
-            && $this->status === 'open' && $this->sort === 'newest';
+            && $this->status === 'open' && $this->sort === 'newest'
+            && $this->type === '' && $this->month === '';
     }
 }

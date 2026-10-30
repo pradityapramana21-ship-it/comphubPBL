@@ -64,6 +64,12 @@ abstract class FormRequest
             $this->attributes(),
         );
 
+        try {
+            $validated = $validator->validate();
+        } catch (ValidationException $exception) {
+            throw new ValidationException($exception->errors(), $this->oldInput());
+        }
+
         $this->after($validator);
 
         $this->errors = $validator->errors();
@@ -72,7 +78,7 @@ abstract class FormRequest
             throw new ValidationException($this->errors, $this->oldInput());
         }
 
-        return $validator->validate();
+        return $validated;
     }
 
     protected function after(Validator $validator): void

@@ -52,10 +52,42 @@ function insertEvent(Database $db, array $fixture, array $overrides = []): int
     );
 }
 
-test('schema seeds exactly three categories idempotently', function (): void {
+test('schema adds event metadata columns and topic categories additively', function (): void {
     $db = db();
-    $count = (int) $db->selectOne('SELECT count(*) AS total FROM categories')['total'];
-    assertSame(3, $count);
+    $columns = [];
+
+    foreach ($db->select(
+        "SELECT column_name FROM information_schema.columns
+         WHERE table_schema = current_schema() AND table_name = 'events'",
+    ) as $row) {
+        $columns[] = (string) $row['column_name'];
+    }
+
+    foreach ([
+        'event_type', 'registration_start_at', 'poster_path', 'guidebook_path',
+        'organizer_email', 'contact_number', 'revision_token_hash',
+        'revision_token_expires_at', 'revision_token_revoked_at',
+        'revision_token_last_used_at',
+    ] as $column) {
+        assertTrue(in_array($column, $columns, true), 'Missing events column: ' . $column);
+    }
+
+    $categories = $db->select('SELECT slug, is_active FROM categories ORDER BY slug');
+    assertSame(7, count($categories));
+
+    $active = [];
+
+    foreach ($categories as $category) {
+        if ((bool) $category['is_active']) {
+            $active[] = (string) $category['slug'];
+        }
+    }
+
+    sort($active);
+    assertSame(['akademik', 'bisnis', 'teknologi', 'umum'], $active);
+    assertFalse((bool) $db->selectOne("SELECT is_active FROM categories WHERE slug = 'lomba'")['is_active']);
+    assertFalse((bool) $db->selectOne("SELECT is_active FROM categories WHERE slug = 'webinar'")['is_active']);
+    assertFalse((bool) $db->selectOne("SELECT is_active FROM categories WHERE slug = 'seminar'")['is_active']);
 });
 
 test('schema rejects invalid event dates and missing offline location', function (): void {

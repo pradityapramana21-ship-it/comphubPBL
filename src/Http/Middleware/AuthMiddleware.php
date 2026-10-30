@@ -17,7 +17,7 @@ final class AuthMiddleware implements Middleware
     public function handle(Request $request, callable $next): Response
     {
         if (! $this->auth->check()) {
-            return Response::redirect(url('/masuk?next=' . rawurlencode($request->path())));
+            return Response::redirect(url('/masuk?next=' . rawurlencode($request->fullPath())));
         }
 
         return $next($request);

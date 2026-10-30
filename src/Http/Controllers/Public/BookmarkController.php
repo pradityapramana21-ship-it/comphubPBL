@@ -64,7 +64,7 @@ final class BookmarkController extends Controller
         $route = (array) $request->attribute('route', []);
         $event = $this->events->findById((int) ($route['event'] ?? 0));
 
-        if ($event === null || ($event['status'] ?? '') !== 'approved') {
+        if ($event === null || ($event['status'] ?? '') !== 'approved' || ($event['archived_at'] ?? null) !== null) {
             throw HttpException::notFound();
         }
 
