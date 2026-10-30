@@ -1,0 +1,154 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+if (PHP_SAPI !== 'cli') {
+    exit(1);
+}
+
+$root = dirname(__DIR__);
+$command = $argv[1] ?? 'help';
+
+if ($command === 'test') {
+    putenv('APP_ENV=testing');
+}
+
+$app = require $root . '/bootstrap/app.php';
+
+use App\Core\Config;
+use App\Core\Database;
+use App\Core\Env;
+use App\Enums\AccountStatus;
+use App\Enums\UserRole;
+use App\Repositories\Contracts\AuditLogRepository;
+use App\Repositories\Contracts\UserRepository;
+use App\Services\EventImporter;
+
+function consoleLine(string $line = ''): void
+{
+    fwrite(STDOUT, $line . PHP_EOL);
+}
+
+function consoleError(string $line): void
+{
+    fwrite(STDERR, $line . PHP_EOL);
+}
+
+function connectOrFail(): Database
+{
+    try {
+        return Database::connectFromConfig();
+    } catch (Throwable $exception) {
+        consoleError('Koneksi database gagal: ' . $exception->getMessage());
+        consoleError('Periksa .env lalu pastikan database sudah dibuat dengan createdb.');
+        exit(1);
+    }
+}
+
+switch ($command) {
+    case 'migrate':
+        $db = connectOrFail();
+        $db->exec((string) file_get_contents($root . '/database/schema.sql'));
+        $db->exec((string) file_get_contents($root . '/database/seed/categories.sql'));
+        consoleLine('Migrasi selesai: ' . Config::get('app.database.database'));
+        break;
+
+    case 'test':
+        $testDb = connectOrFail();
+        $testDb->exec((string) file_get_contents($root . '/database/schema.sql'));
+        $testDb->exec((string) file_get_contents($root . '/database/seed/categories.sql'));
+        $testDb->exec('TRUNCATE users, provider_profiles, events, bookmarks, event_reports,
+            moderation_logs, audit_logs, password_reset_tokens RESTART IDENTITY CASCADE');
+        passthru(PHP_BINARY . ' ' . escapeshellarg($root . '/tests/run.php'), $status);
+        exit($status);
+
+    case 'create-admin':
+        $name = trim((string) Env::get('ADMIN_NAME', 'Administrator'));
+        $email = trim((string) Env::get('ADMIN_EMAIL', ''));
+        $password = (string) Env::get('ADMIN_PASSWORD', '');
+
+        if ($name === '') {
+            $name = 'Administrator';
+        }
+
+        if ($email === '' || filter_var($email, FILTER_VALIDATE_EMAIL) === false) {
+            consoleError('ADMIN_EMAIL belum diisi atau tidak valid.');
+            exit(1);
+        }
+
+        if (mb_strlen($password) < 8) {
+            consoleError('ADMIN_PASSWORD minimal 8 karakter.');
+            exit(1);
+        }
+
+        connectOrFail();
+
+        $users = $app->container()->make(UserRepository::class);
+        $audit = $app->container()->make(AuditLogRepository::class);
+        $existing = $users->findByEmail($email);
+
+        if ($existing === null) {
+            $user = $users->create($name, $email, password_hash($password, PASSWORD_DEFAULT), UserRole::Admin);
+            $action = 'admin.create';
+            consoleLine('Admin dibuat: ' . $email);
+        } else {
+            $users->updateProfile((int) $existing['id'], ['name' => $name, 'email' => $email]);
+            $users->updateRole((int) $existing['id'], UserRole::Admin);
+            $users->updateStatus((int) $existing['id'], AccountStatus::Active);
+            $users->updatePassword((int) $existing['id'], password_hash($password, PASSWORD_DEFAULT));
+            $user = $users->findById((int) $existing['id']) ?? $existing;
+            $action = 'admin.update';
+            consoleLine('Admin diperbarui: ' . $email);
+        }
+
+        $audit->record(null, UserRole::Admin->value, $action, 'user', (int) $user['id'], ['via' => 'cli']);
+        break;
+
+    case 'import-events':
+        $file = $argv[2] ?? '';
+
+        if ($file === '') {
+            consoleError('Pakai: php bin/console import-events <berkas.json> [--dry-run]');
+            exit(1);
+        }
+
+        $dryRun = in_array('--dry-run', $argv, true);
+
+        try {
+            $report = $app->container()->make(EventImporter::class)->import($file, $dryRun);
+        } catch (Throwable $exception) {
+            consoleError('Impor gagal: ' . $exception->getMessage());
+            exit(1);
+        }
+
+        consoleLine(
+            ($dryRun ? 'Dry-run' : 'Impor') . ': '
+            . $report['inserted'] . ' baru, '
+            . $report['updated'] . ' diperbarui, '
+            . $report['skipped'] . ' dilewati.',
+        );
+
+        foreach ($report['warnings'] as $warning) {
+            consoleError('Peringatan: ' . $warning);
+        }
+
+        foreach ($report['errors'] as $error) {
+            consoleError('Kesalahan: ' . $error);
+        }
+
+        exit($report['errors'] === [] ? 0 : 1);
+
+    case 'expire-events':
+        consoleLine('Perintah expire-events belum tersedia pada tahap ini.');
+        exit(1);
+
+    default:
+        consoleLine('CompHub console');
+        consoleLine('  migrate           jalankan skema dan kategori');
+        consoleLine('  create-admin      buat admin dari variabel lingkungan');
+        consoleLine('  import-events     impor data kegiatan dari JSON');
+        consoleLine('  expire-events     tandai kegiatan yang lewat tenggat');
+        consoleLine('  test              jalankan seluruh tes');
+        break;
+}
