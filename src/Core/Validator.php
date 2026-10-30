@@ -67,7 +67,7 @@ final class Validator
     /** @param list<string> $rules */
     private function validateField(string $field, array $rules): void
     {
-        $value = $this->data[$field] ?? null;
+        $value = $this->data[$field] ?? $this->files[$field] ?? null;
         $isFile = $this->isFileValue($value);
         $nullable = in_array('nullable', $rules, true);
         $required = in_array('required', $rules, true);
@@ -203,7 +203,7 @@ final class Validator
             $message = $minimum
                 ? $this->message($field, 'file_min', [':min' => $this->formatSize($limit)])
                 : $this->message($field, 'file_max', [':max' => $this->formatSize($limit)]);
-        } elseif (is_numeric($value)) {
+        } elseif (is_int($value) || is_float($value)) {
             $passes = $minimum ? (float) $value >= $limit : (float) $value <= $limit;
             $message = $this->message($field, $minimum ? 'min' : 'max', [':limit' => (string) $limit]);
         } else {
@@ -231,6 +231,7 @@ final class Validator
             'jpeg' => 'image/jpeg',
             'jpg' => 'image/jpeg',
             'png' => 'image/png',
+            'webp' => 'image/webp',
         ];
         $valid = [];
 
@@ -373,7 +374,7 @@ final class Validator
             'file_min' => 'Ukuran :attribute minimal :min.',
             'file_max' => 'Ukuran :attribute maksimal :max.',
             'file' => 'Kolom :attribute harus berupa berkas yang berhasil diunggah.',
-            'mimetypes' => 'Tipe berkas :attribute harus PDF, JPEG, atau PNG.',
+            'mimetypes' => 'Tipe berkas :attribute tidak didukung.',
             'unique' => 'Nilai :attribute sudah digunakan.',
             'exists' => 'Nilai :attribute tidak ditemukan.',
         ];

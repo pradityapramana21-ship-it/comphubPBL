@@ -15,6 +15,8 @@ use App\Http\Controllers\PasswordResetController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Public\BookmarkController;
 use App\Http\Controllers\Public\EventCatalogController;
+use App\Http\Controllers\Public\EventSubmissionController;
+use App\Http\Controllers\Public\MediaController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\ProviderDirectoryController;
 use App\Http\Controllers\Public\StaticPageController;
@@ -43,6 +45,13 @@ $router->post('/kegiatan/{event}/bookmark', [BookmarkController::class, 'store']
 $router->delete('/kegiatan/{event}/bookmark', [BookmarkController::class, 'destroy'])
     ->name('events.bookmark.destroy')->middleware('auth');
 $router->get('/kegiatan/{slug}', [EventCatalogController::class, 'show'])->name('events.show');
+$router->get('/media/poster/{event:id}', [MediaController::class, 'poster'])->name('media.poster');
+$router->get('/media/guidebook/{event:id}', [MediaController::class, 'guidebook'])->name('media.guidebook');
+$router->get('/ajukan', [EventSubmissionController::class, 'show'])->name('submissions.create');
+$router->post('/ajukan', [EventSubmissionController::class, 'submit'])->name('submissions.store');
+$router->get('/ajukan/berhasil', [EventSubmissionController::class, 'success'])->name('submissions.success');
+$router->get('/pengajuan/{token}', [EventSubmissionController::class, 'edit'])->name('submissions.edit');
+$router->post('/pengajuan/{token}', [EventSubmissionController::class, 'update'])->name('submissions.update');
 
 $router->get('/masuk', [AuthController::class, 'showLogin'])->name('auth.login')->middleware('guest');
 $router->post('/masuk', [AuthController::class, 'login'])->name('auth.login.attempt')->middleware('guest');

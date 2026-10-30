@@ -118,9 +118,12 @@ final class App
 
     private function applySecurityHeaders(Response $response): Response
     {
+        if ($response->header('Referrer-Policy') === null) {
+            $response = $response->withHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        }
+
         return $response
             ->withHeader('X-Content-Type-Options', 'nosniff')
-            ->withHeader('Referrer-Policy', 'strict-origin-when-cross-origin')
             ->withHeader('X-Frame-Options', 'DENY')
             ->withHeader(
                 'Content-Security-Policy',

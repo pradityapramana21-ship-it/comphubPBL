@@ -365,6 +365,43 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
         $this->database->execute('UPDATE events SET view_count = view_count + 1 WHERE id = :id', ['id' => $id]);
     }
 
+    public function setRevisionToken(int $eventId, string $hash, string $expiresAt): void
+    {
+        $this->database->execute(
+            'UPDATE events SET revision_token_hash = :hash, revision_token_expires_at = :expires_at,
+                revision_token_revoked_at = NULL, revision_token_last_used_at = NULL, updated_at = now()
+             WHERE id = :id',
+            ['hash' => $hash, 'expires_at' => $expiresAt, 'id' => $eventId],
+        );
+    }
+
+    public function findRevisionEventByTokenHash(string $hash): ?array
+    {
+        return $this->database->selectOne(
+            self::SELECT . " WHERE e.revision_token_hash = :hash
+                AND e.revision_token_revoked_at IS NULL
+                AND e.revision_token_expires_at > now()
+                AND e.status = 'changes_requested'",
+            ['hash' => $hash],
+        );
+    }
+
+    public function markRevisionTokenUsed(int $eventId): void
+    {
+        $this->database->execute(
+            'UPDATE events SET revision_token_last_used_at = now(), updated_at = now() WHERE id = :id',
+            ['id' => $eventId],
+        );
+    }
+
+    public function revokeRevisionToken(int $eventId): void
+    {
+        $this->database->execute(
+            'UPDATE events SET revision_token_revoked_at = now(), updated_at = now() WHERE id = :id',
+            ['id' => $eventId],
+        );
+    }
+
     /** @param list<string> $where @param array<string, mixed> $params */
     private function applyPublicFilters(array &$where, array &$params, CatalogFilter $filter): void
     {

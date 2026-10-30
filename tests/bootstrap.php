@@ -108,17 +108,17 @@ function signOut(): void
  * @param array<string, mixed> $input
  * @param array<string, string> $headers
  */
-function request(string $method, string $path, array $input = [], array $headers = []): Response
+function request(string $method, string $path, array $input = [], array $headers = [], array $files = []): Response
 {
     if (! in_array(strtoupper($method), ['GET', 'HEAD', 'OPTIONS'], true)) {
         $token = app()->csrf()->token();
         $input['_token'] = $input['_token'] ?? $token;
     }
 
-    return app()->handle(Request::create($method, $path, $input, $headers));
+    return app()->handle(Request::create($method, $path, $input, $headers, $files));
 }
 
-function rawRequest(string $method, string $path, array $input = [], array $headers = []): Response
+function rawRequest(string $method, string $path, array $input = [], array $headers = [], array $files = []): Response
 {
-    return app()->invoke(Request::create($method, $path, $input, $headers));
+    return app()->invoke(Request::create($method, $path, $input, $headers, $files));
 }

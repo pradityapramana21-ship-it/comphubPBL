@@ -32,6 +32,10 @@ use App\Repositories\Pdo\PdoPasswordResetRepository;
 use App\Repositories\Pdo\PdoProviderProfileRepository;
 use App\Repositories\Pdo\PdoReportRepository;
 use App\Repositories\Pdo\PdoUserRepository;
+use App\Services\CurationProfileService;
+use App\Services\EventSubmissionService;
+use App\Services\RevisionTokenService;
+use App\Services\UploadService;
 use App\Support\FileCache;
 use App\Support\LogMailer;
 use App\Support\Mailer;
@@ -81,6 +85,15 @@ $container->singleton(ReportRepository::class, static fn (Container $c): ReportR
 $container->singleton(ModerationLogRepository::class, static fn (Container $c): ModerationLogRepository => new PdoModerationLogRepository($c->make(Database::class)));
 $container->singleton(AuditLogRepository::class, static fn (Container $c): AuditLogRepository => new PdoAuditLogRepository($c->make(Database::class)));
 $container->singleton(PasswordResetRepository::class, static fn (Container $c): PasswordResetRepository => new PdoPasswordResetRepository($c->make(Database::class)));
+$container->singleton(CurationProfileService::class, static fn (Container $c): CurationProfileService => new CurationProfileService($c->make(Database::class)));
+$container->singleton(UploadService::class, static fn (): UploadService => new UploadService($root . '/storage/uploads'));
+$container->singleton(RevisionTokenService::class, static fn (Container $c): RevisionTokenService => new RevisionTokenService($c->make(EventRepository::class)));
+$container->singleton(EventSubmissionService::class, static fn (Container $c): EventSubmissionService => new EventSubmissionService(
+    $c->make(EventRepository::class),
+    $c->make(CurationProfileService::class),
+    $c->make(UploadService::class),
+    new \App\Support\SlugGenerator($c->make(Database::class)),
+));
 
 $app = new App($container);
 $container->instance(App::class, $app);

@@ -73,4 +73,13 @@ interface EventRepository
     public function findById(int $id): ?array;
 
     public function incrementViewCount(int $id): void;
+
+    public function setRevisionToken(int $eventId, string $hash, string $expiresAt): void;
+
+    /** @return array<string, mixed>|null */
+    public function findRevisionEventByTokenHash(string $hash): ?array;
+
+    public function markRevisionTokenUsed(int $eventId): void;
+
+    public function revokeRevisionToken(int $eventId): void;
 }
