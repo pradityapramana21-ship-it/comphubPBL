@@ -17,7 +17,9 @@ final class GuestMiddleware implements Middleware
     public function handle(Request $request, callable $next): Response
     {
         if ($this->auth->check()) {
-            return Response::redirect(url('/dasbor'));
+            return Response::redirect(url(
+                $this->auth->role() === \App\Enums\UserRole::Admin ? '/admin' : '/dasbor',
+            ));
         }
 
         return $next($request);

@@ -73,7 +73,7 @@ final class AuthController extends Controller
             return url($next);
         }
 
-        return url('/dasbor');
+        return url($this->auth->role() === \App\Enums\UserRole::Admin ? '/admin' : '/dasbor');
     }
 
     private function safeNext(mixed $next): string
@@ -82,8 +82,14 @@ final class AuthController extends Controller
             return '';
         }
 
-        if (! str_starts_with($next, '/') || str_starts_with($next, '//') || str_contains($next, '\\')
+        $decoded = rawurldecode($next);
+
+        if (! str_starts_with($next, '/') || str_starts_with($next, '//')
+            || ! str_starts_with($decoded, '/') || str_starts_with($decoded, '//')
+            || str_contains($next, '\\') || str_contains($decoded, '\\')
             || preg_match('/[\x00-\x1F\x7F]/', $next) === 1
+            || preg_match('/[\x00-\x1F\x7F]/', $decoded) === 1
+            || preg_match('#^[a-z][a-z0-9+.-]*:#i', $next) === 1
         ) {
             return '';
         }
