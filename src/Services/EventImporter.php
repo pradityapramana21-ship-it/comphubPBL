@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Core\Database;
 use App\Enums\AccountStatus;
+use App\Enums\EventType;
 use App\Enums\UserRole;
 use App\Repositories\Contracts\CategoryRepository;
 use App\Repositories\Contracts\EventRepository;
@@ -143,6 +144,12 @@ final class EventImporter
             $errors[] = 'Entri ' . $line . ': kategori harus lomba, webinar, atau seminar.';
         }
 
+        if (isset($entry['topic']) && $entry['topic'] !== ''
+            && ! in_array((string) $entry['topic'], ['teknologi', 'bisnis', 'akademik', 'umum'], true)
+        ) {
+            $errors[] = 'Entri ' . $line . ': topic harus teknologi, bisnis, akademik, atau umum.';
+        }
+
         if (! in_array((string) $entry['mode'], ['online', 'offline', 'hybrid'], true)) {
             $errors[] = 'Entri ' . $line . ': mode tidak valid.';
         }
@@ -195,10 +202,21 @@ final class EventImporter
     private function upsert(array $entry, int $profileId, array &$report): ?string
     {
         $slug = (string) $entry['slug'];
-        $category = $this->categories->findBySlug((string) $entry['category']);
+        $type = EventType::fromCategorySlug((string) $entry['category']);
+        $topic = trim((string) ($entry['topic'] ?? ''));
 
-        if ($category === null) {
-            return 'Entri ' . $slug . ': kategori tidak ditemukan.';
+        if ($topic === '') {
+            $topic = match ((string) $entry['category']) {
+                'lomba' => 'teknologi',
+                'webinar' => 'akademik',
+                default => 'umum',
+            };
+        }
+
+        $category = $this->categories->findBySlug($topic);
+
+        if ($category === null || ! (bool) $category['is_active']) {
+            return 'Entri ' . $slug . ': topik aktif tidak ditemukan.';
         }
 
         $existing = $this->events->findBySlug($slug);
@@ -235,6 +253,7 @@ final class EventImporter
             'source_url' => (string) $entry['source_url'],
             'source_checked_at' => $this->dbDate((string) $entry['source_checked_at']),
             'source_note' => isset($entry['source_note']) ? (string) $entry['source_note'] : null,
+            'event_type' => $type?->value,
         ];
 
         if ($existing === null) {
