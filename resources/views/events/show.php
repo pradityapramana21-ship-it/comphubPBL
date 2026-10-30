@@ -4,9 +4,11 @@
 /** @var string $registrationUrl */
 /** @var string $sourceUrl */
 /** @var string $sourceDomain */
+use App\Enums\EventType;
 use App\Support\DateHelper;
 
 $dates = new DateHelper();
+$type = EventType::tryFrom((string) ($event['event_type'] ?? ''));
 $start = new DateTimeImmutable((string) $event['event_start_at']);
 $end = new DateTimeImmutable((string) $event['event_end_at']);
 $organizer = (string) ($event['organizer_name'] ?: $event['organization_name']);
@@ -20,14 +22,17 @@ $organizer = (string) ($event['organizer_name'] ?: $event['organization_name']);
 
     <div class="detail-head">
         <?php require dirname(__DIR__) . '/partials/event-status.php'; ?>
+        <span class="event-type"><?= e($type?->label() ?? 'Kegiatan') ?></span>
         <span class="event-category"><?= e($event['category_name']) ?></span>
     </div>
+    <?php require dirname(__DIR__) . '/partials/poster.php'; ?>
     <h1><?= e($event['title']) ?></h1>
     <p class="event-organizer"><?= e($organizer) ?> &middot; <?= e($event['campus_name']) ?></p>
 
     <dl class="detail-facts">
         <div><dt>Jadwal</dt><dd><?= e($dates->range($start, $end)) ?></dd></div>
         <div><dt>Tenggat pendaftaran</dt><dd><?php require dirname(__DIR__) . '/partials/deadline.php'; ?></dd></div>
+        <div><dt>Hitung mundur</dt><dd><span data-countdown="<?= e((new DateTimeImmutable((string) $event['registration_deadline']))->format(DATE_ATOM)) ?>">—</span></dd></div>
         <div><dt>Mode</dt><dd><?= e(ucfirst((string) $event['mode'])) ?></dd></div>
         <?php if (! empty($event['location_text'])): ?>
             <div><dt>Lokasi</dt><dd><?= e($event['location_text']) ?></dd></div>

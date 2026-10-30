@@ -1,16 +1,10 @@
 <?php
 /** @var array<string, mixed> $event */
-$confirmed = ! array_key_exists('deadline_confirmed', $event) || (bool) $event['deadline_confirmed'];
-$deadline = new DateTimeImmutable((string) $event['registration_deadline']);
-$now = new DateTimeImmutable('now');
-$days = (int) $now->diff($deadline)->format('%r%a');
+use App\Enums\RegistrationStatus;
 
-if (! $confirmed) {
-    $statusLabel = 'Tenggat belum pasti';
-    $statusClass = 'status-unknown';
-} else {
-    $statusLabel = $deadline < $now ? 'Ditutup' : ($days <= 3 ? 'Segera tutup' : 'Buka');
-    $statusClass = $deadline < $now ? 'status-closed' : ($days <= 3 ? 'status-soon' : 'status-open');
-}
+$registration = RegistrationStatus::fromEvent($event);
+$confirmed = ! array_key_exists('deadline_confirmed', $event) || (bool) $event['deadline_confirmed'];
+$label = $confirmed ? $registration->label() : 'Tenggat belum dipastikan';
+$class = $confirmed ? $registration->tone() : 'status-unknown';
 ?>
-<span class="status-badge <?= e($statusClass) ?>"><?= e($statusLabel) ?></span>
+<span class="status-badge <?= e($class) ?>"><?= e($label) ?></span>

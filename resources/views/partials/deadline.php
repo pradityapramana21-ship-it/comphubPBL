@@ -8,7 +8,7 @@ $deadline = new DateTimeImmutable((string) $event['registration_deadline']);
 $confirmed = ! array_key_exists('deadline_confirmed', $event) || (bool) $event['deadline_confirmed'];
 ?>
 <?php if ($confirmed): ?>
-    Tenggat <?= e($dates->date($deadline)) ?> &middot; <?= e($dates->relative($deadline)) ?>
+    <span class="deadline-label">Tenggat</span> <?= e($dates->date($deadline)) ?> &middot; <?= e($dates->relative($deadline)) ?>
 <?php else: ?>
-    Tenggat belum dipastikan &middot; perkiraan <?= e($dates->date($deadline)) ?>
+    <span class="deadline-label">Perkiraan tenggat</span> <?= e($dates->date($deadline)) ?> &middot; belum dipastikan
 <?php endif; ?>

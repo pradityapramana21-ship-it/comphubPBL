@@ -34,6 +34,9 @@ $router->get('/kontak', [StaticPageController::class, 'contact'])->name('pages.c
 $router->get('/penyelenggara', [ProviderDirectoryController::class, 'index'])->name('providers.index');
 $router->get('/penyelenggara/{slug}', [ProviderDirectoryController::class, 'show'])->name('providers.show');
 
+$router->get('/lomba', [EventCatalogController::class, 'competition'])->name('events.competition');
+$router->get('/webinar', [EventCatalogController::class, 'webinar'])->name('events.webinar');
+$router->get('/seminar', [EventCatalogController::class, 'seminar'])->name('events.seminar');
 $router->get('/kegiatan', [EventCatalogController::class, 'index'])->name('events.index');
 $router->post('/kegiatan/{event}/bookmark', [BookmarkController::class, 'store'])
     ->name('events.bookmark.store')->middleware('auth', 'throttle:bookmark');

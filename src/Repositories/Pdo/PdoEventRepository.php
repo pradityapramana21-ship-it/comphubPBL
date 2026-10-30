@@ -48,7 +48,7 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
             $params,
             $filter->page,
             12,
-            '/kegiatan',
+            $filter->type !== '' ? (\App\Enums\EventType::from($filter->type))->path() : '/kegiatan',
             $filter->query(),
         );
     }
