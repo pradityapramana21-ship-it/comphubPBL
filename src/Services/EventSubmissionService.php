@@ -55,8 +55,11 @@ final class EventSubmissionService
         $posterPath = $poster !== null ? $this->uploads->store($poster, 'poster') : null;
         $guidebookPath = $guidebook !== null ? $this->uploads->store($guidebook, 'guidebook') : null;
 
+        $attributes = $this->attributes($data, $posterPath, $guidebookPath);
+        unset($attributes['provider_profile_id']);
+
         try {
-            $updated = $this->events->update((int) $event['id'], $this->attributes($data, $posterPath, $guidebookPath) + [
+            $updated = $this->events->update((int) $event['id'], $attributes + [
                 'status' => 'pending',
                 'submitted_at' => (new \DateTimeImmutable('now'))->format('Y-m-d H:i:sP'),
                 'rejection_reason' => null,

@@ -11,7 +11,11 @@ VALUES
     ('Bisnis', 'bisnis', 'Bisnis, kewirausahaan, dan komersialisasi inovasi.', TRUE),
     ('Akademik', 'akademik', 'Akademik, riset, metodologi, dan pengembangan ilmu.', TRUE),
     ('Umum', 'umum', 'Kegiatan lintas bidang yang tidak masuk topik khusus.', TRUE)
-ON CONFLICT (slug) DO NOTHING;
+ON CONFLICT (slug) DO UPDATE SET
+    name = EXCLUDED.name,
+    description = EXCLUDED.description,
+    is_active = EXCLUDED.is_active,
+    updated_at = now();
 
 UPDATE categories SET is_active = FALSE, updated_at = now()
 WHERE slug IN ('lomba', 'webinar', 'seminar');
@@ -36,5 +40,4 @@ SET event_type = CASE c.slug
     )
 FROM categories c
 WHERE c.id = e.category_id
-  AND c.slug IN ('lomba', 'webinar', 'seminar')
-  AND (e.event_type IS NULL OR e.category_id = c.id);
+  AND c.slug IN ('lomba', 'webinar', 'seminar');

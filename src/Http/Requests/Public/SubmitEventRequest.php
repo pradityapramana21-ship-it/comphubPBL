@@ -20,7 +20,7 @@ final class SubmitEventRequest extends FormRequest
             'organizer_name' => 'required|string|min:3|max:180',
             'organizer_email' => 'required|email|max:190',
             'contact_number' => 'required|string|min:8|max:40',
-            'category_id' => 'required|integer|exists:categories,id',
+            'category_id' => 'required|integer|exists_active:categories,id',
             'description' => 'required|string|min:40|max:10000',
             'requirements' => 'nullable|string|max:5000',
             'registration_url' => 'required|url|max:500',

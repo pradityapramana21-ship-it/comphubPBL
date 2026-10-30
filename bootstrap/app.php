@@ -61,6 +61,7 @@ if (getenv('APP_ENV') === 'testing') {
 }
 
 Config::load($root . '/config');
+date_default_timezone_set((string) Config::get('app.timezone', 'Asia/Jakarta'));
 
 require $root . '/bootstrap/helpers.php';
 

@@ -87,3 +87,16 @@ test('validator unique rule ignores the current record', function (): void {
         db()->execute("DELETE FROM categories WHERE slug IN ('validasi-uji', 'validasi-uji-2')");
     }
 });
+
+
+test('validator treats datetime-local values in the app timezone', function (): void {
+    $pastWib = (new DateTimeImmutable('now', new DateTimeZone('Asia/Jakarta')))
+        ->modify('-2 hours')
+        ->format('Y-m-d\TH:i');
+    $validator = new Validator(['start' => $pastWib], [], [
+        'start' => 'required|date|after:now',
+    ]);
+
+    $exception = assertThrows(ValidationException::class, fn () => $validator->validate());
+    assertTrue(isset($exception->errors()['start']));
+});

@@ -190,6 +190,9 @@ final class Validator
             case 'exists':
                 $this->checkExists($field, $string, (string) $parameter);
                 break;
+            case 'exists_active':
+                $this->checkExists($field, $string, (string) $parameter, true);
+                break;
             default:
                 throw new \LogicException('Aturan validasi tidak dikenal: ' . $rule);
         }
@@ -269,16 +272,17 @@ final class Validator
         }
     }
 
-    private function checkExists(string $field, string $value, string $parameter): void
+    private function checkExists(string $field, string $value, string $parameter, bool $activeOnly = false): void
     {
         [$table, $column] = array_pad(explode(',', $parameter), 2, 'id');
         $this->assertIdentifier((string) $table);
         $this->assertIdentifier((string) $column);
 
-        $found = $this->database()->selectOne(
-            'SELECT 1 FROM ' . $table . ' WHERE ' . $column . ' = :value LIMIT 1',
-            ['value' => $value],
-        );
+        $sql = 'SELECT 1 FROM ' . $table . ' WHERE ' . $column . ' = :value';
+        if ($activeOnly) {
+            $sql .= ' AND is_active = TRUE';
+        }
+        $found = $this->database()->selectOne($sql . ' LIMIT 1', ['value' => $value]);
 
         if ($found === null) {
             $this->addError($field, $this->message($field, 'exists'));
@@ -377,6 +381,7 @@ final class Validator
             'mimetypes' => 'Tipe berkas :attribute tidak didukung.',
             'unique' => 'Nilai :attribute sudah digunakan.',
             'exists' => 'Nilai :attribute tidak ditemukan.',
+            'exists_active' => 'Nilai :attribute tidak aktif atau tidak ditemukan.',
         ];
         $template = $this->messages[$field . '.' . $rule]
             ?? $this->messages[$field]

@@ -44,9 +44,17 @@ final class ModerationService
         $this->requireReason($reason);
 
         return $this->database->transaction(function () use ($eventId, $actorId, $reason, $ip, $userAgent): array {
+            $event = $this->events->findById($eventId);
+            $current = $event === null ? null : EventStatus::tryFrom((string) ($event['status'] ?? ''));
+
+            if ($event === null || $current === null || ! $current->canTransitionTo(EventStatus::ChangesRequested)) {
+                throw new ValidationException(['status' => ['Revisi tidak dapat diminta dari status saat ini.']]);
+            }
+
             $event = $this->events->update($eventId, [
                 'status' => EventStatus::ChangesRequested->value,
                 'published_at' => null,
+                'archived_at' => null,
                 'rejection_reason' => trim($reason),
             ]);
             $token = $this->tokens->issue($eventId);
@@ -59,7 +67,7 @@ final class ModerationService
                 trim($reason),
                 null,
                 ['token_issued' => true],
-                EventStatus::Pending->value,
+                $current->value,
                 EventStatus::ChangesRequested->value,
             );
             $this->audit($actorId, 'event.request_changes', $eventId, ['reason' => trim($reason)], $ip, $userAgent);

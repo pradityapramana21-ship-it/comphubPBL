@@ -89,7 +89,7 @@ $tokenLink = $revisionToken !== '' && $revisionTokenEventId === (int) $event['id
             </form>
         <?php endif; ?>
 
-        <?php if (in_array($event['status'] ?? '', ['pending', 'changes_requested'], true)): ?>
+        <?php if (($event['status'] ?? '') === 'pending'): ?>
             <form method="post" action="<?= e(url('/admin/moderasi/' . $event['id'] . '/tolak')) ?>" class="admin-form">
                 <?= csrf_field() ?>
                 <label for="reject-reason">Alasan penolakan</label>

@@ -49,15 +49,19 @@ function connectOrFail(): Database
 switch ($command) {
     case 'migrate':
         $db = connectOrFail();
-        $db->exec((string) file_get_contents($root . '/database/schema.sql'));
-        $db->exec((string) file_get_contents($root . '/database/seed/categories.sql'));
+        $db->transaction(static function (Database $database) use ($root): void {
+            $database->exec((string) file_get_contents($root . '/database/schema.sql'));
+            $database->exec((string) file_get_contents($root . '/database/seed/categories.sql'));
+        });
         consoleLine('Migrasi selesai: ' . Config::get('app.database.database'));
         break;
 
     case 'test':
         $testDb = connectOrFail();
-        $testDb->exec((string) file_get_contents($root . '/database/schema.sql'));
-        $testDb->exec((string) file_get_contents($root . '/database/seed/categories.sql'));
+        $testDb->transaction(static function (Database $database) use ($root): void {
+            $database->exec((string) file_get_contents($root . '/database/schema.sql'));
+            $database->exec((string) file_get_contents($root . '/database/seed/categories.sql'));
+        });
         $testDb->exec('TRUNCATE users, provider_profiles, events, bookmarks, event_reports,
             moderation_logs, audit_logs, password_reset_tokens RESTART IDENTITY CASCADE');
         passthru(PHP_BINARY . ' ' . escapeshellarg($root . '/tests/run.php'), $status);
