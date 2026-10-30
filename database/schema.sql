@@ -155,6 +155,16 @@ CREATE TABLE IF NOT EXISTS events (
     view_count INTEGER NOT NULL DEFAULT 0,
     bookmark_count INTEGER NOT NULL DEFAULT 0,
     organizer_name VARCHAR(180) NULL,
+    event_type VARCHAR(20) NULL,
+    registration_start_at TIMESTAMPTZ NULL,
+    poster_path VARCHAR(255) NULL,
+    guidebook_path VARCHAR(255) NULL,
+    organizer_email VARCHAR(190) NULL,
+    contact_number VARCHAR(40) NULL,
+    revision_token_hash CHAR(64) NULL,
+    revision_token_expires_at TIMESTAMPTZ NULL,
+    revision_token_revoked_at TIMESTAMPTZ NULL,
+    revision_token_last_used_at TIMESTAMPTZ NULL,
     source_url VARCHAR(500) NULL,
     source_checked_at TIMESTAMPTZ NULL,
     source_note TEXT NULL,
@@ -180,6 +190,22 @@ CREATE INDEX IF NOT EXISTS events_status_published_index ON events (status, publ
 
 ALTER TABLE users ADD COLUMN IF NOT EXISTS events_seen_at TIMESTAMPTZ NOT NULL DEFAULT now();
 ALTER TABLE events ADD COLUMN IF NOT EXISTS deadline_confirmed BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS event_type VARCHAR(20) NULL;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS registration_start_at TIMESTAMPTZ NULL;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS poster_path VARCHAR(255) NULL;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS guidebook_path VARCHAR(255) NULL;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS organizer_email VARCHAR(190) NULL;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS contact_number VARCHAR(40) NULL;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS revision_token_hash CHAR(64) NULL;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS revision_token_expires_at TIMESTAMPTZ NULL;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS revision_token_revoked_at TIMESTAMPTZ NULL;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS revision_token_last_used_at TIMESTAMPTZ NULL;
+
+CREATE INDEX IF NOT EXISTS events_event_type_start_index ON events (event_type, event_start_at);
+CREATE INDEX IF NOT EXISTS events_registration_start_index ON events (registration_start_at, registration_deadline);
+CREATE INDEX IF NOT EXISTS events_archived_index ON events (archived_at, status);
+CREATE UNIQUE INDEX IF NOT EXISTS events_revision_token_hash_index
+    ON events (revision_token_hash) WHERE revision_token_hash IS NOT NULL;
 
 CREATE TABLE IF NOT EXISTS bookmarks (
     user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -199,6 +225,8 @@ CREATE TABLE IF NOT EXISTS moderation_logs (
     reason TEXT NULL,
     risk_score SMALLINT NULL,
     metadata JSONB NULL,
+    previous_status VARCHAR(30) NULL,
+    new_status VARCHAR(30) NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -207,6 +235,9 @@ CREATE INDEX IF NOT EXISTS moderation_logs_event_created_index
 CREATE INDEX IF NOT EXISTS moderation_logs_rule_key_index ON moderation_logs (rule_key);
 CREATE INDEX IF NOT EXISTS moderation_logs_action_created_index
     ON moderation_logs (action, created_at);
+
+ALTER TABLE moderation_logs ADD COLUMN IF NOT EXISTS previous_status VARCHAR(30) NULL;
+ALTER TABLE moderation_logs ADD COLUMN IF NOT EXISTS new_status VARCHAR(30) NULL;
 
 CREATE TABLE IF NOT EXISTS event_reports (
     id BIGSERIAL PRIMARY KEY,

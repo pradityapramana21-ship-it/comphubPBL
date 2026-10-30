@@ -62,7 +62,7 @@ test('admin area rejects guests and non-admin users', function (): void {
 test('admin can create update and delete events with audit logs', function (): void {
     $admin = adminUser('kegiatan');
     $provider = adminProvider('kegiatan');
-    $category = (new PdoCategoryRepository(db()))->findBySlug('lomba');
+    $category = (new PdoCategoryRepository(db()))->findBySlug('teknologi');
     signIn((int) $admin['id']);
 
     assertSame(200, request('GET', '/admin')->status());
@@ -178,7 +178,7 @@ test('admin can manage user roles provider verification and reports', function (
     assertSame((int) $admin['id'], (int) $freshProfile['verified_by']);
 
     $events = new PdoEventRepository(db());
-    $category = (new PdoCategoryRepository(db()))->findBySlug('lomba');
+    $category = (new PdoCategoryRepository(db()))->findBySlug('teknologi');
     $event = $events->create([
         'provider_profile_id' => $profile['id'],
         'category_id' => $category['id'],

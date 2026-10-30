@@ -45,7 +45,7 @@ test('repository user, provider, event, bookmark, report, and access invariants'
         ]);
         $providers->update((int) $ownerProfile['id'], ['verification_status' => 'verified', 'verified_by' => $admin['id']]);
 
-        $category = $categories->findBySlug('lomba');
+        $category = $categories->findBySlug('teknologi');
         assertTrue($category !== null);
 
         $start = (new DateTimeImmutable('+10 days'))->format('Y-m-d H:i:sP');
