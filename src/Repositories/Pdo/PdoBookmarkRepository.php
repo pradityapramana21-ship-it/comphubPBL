@@ -61,8 +61,8 @@ final class PdoBookmarkRepository extends PdoRepository implements BookmarkRepos
 
     public function paginateForUser(int $userId, int $perPage = 12, int $page = 1): Paginator
     {
-        $where = "b.user_id = :user_id AND e.status = 'approved' AND c.is_active = TRUE
-            AND p.verification_status = 'verified'";
+        $where = "b.user_id = :user_id AND e.status = 'approved' AND e.archived_at IS NULL
+            AND c.is_active = TRUE AND p.verification_status = 'verified'";
         $from = ' FROM bookmarks b
             JOIN events e ON e.id = b.event_id
             JOIN categories c ON c.id = e.category_id

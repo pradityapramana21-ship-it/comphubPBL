@@ -3,6 +3,8 @@
 declare(strict_types=1);
 
 use App\DataTransferObjects\CatalogFilter;
+use App\Enums\EventType;
+use App\Enums\RegistrationStatus;
 use App\Enums\ReportReason;
 use App\Enums\UserRole;
 use App\Repositories\Pdo\PdoBookmarkRepository;
@@ -128,4 +130,79 @@ test('repository user, provider, event, bookmark, report, and access invariants'
         assertTrue($access->canManageUser($admin, $owner));
         assertFalse($access->canManageUser($admin, $admin));
     });
+});
+
+
+test('registration status follows start and deadline without using moderation status', function (): void {
+    $now = new DateTimeImmutable('2026-11-01 12:00:00+07:00');
+    $base = ['status' => 'approved', 'registration_deadline' => '2026-11-05 23:59:59+07'];
+
+    assertSame(RegistrationStatus::Upcoming, RegistrationStatus::fromEvent(
+        $base + ['registration_start_at' => '2026-11-03 09:00:00+07'],
+        $now,
+    ));
+    assertSame(RegistrationStatus::Open, RegistrationStatus::fromEvent(
+        $base + ['registration_start_at' => '2026-10-01 09:00:00+07'],
+        $now,
+    ));
+    assertSame(RegistrationStatus::Open, RegistrationStatus::fromEvent(
+        ['status' => 'approved', 'registration_deadline' => '2026-11-05 23:59:59+07'],
+        $now,
+    ));
+    assertSame(RegistrationStatus::Closed, RegistrationStatus::fromEvent(
+        ['status' => 'approved', 'registration_deadline' => '2026-10-31 23:59:59+07'],
+        $now,
+    ));
+});
+
+test('catalog filters event type and month and archive hides without deleting relations', function (): void {
+    $events = new PdoEventRepository(db());
+    $bookmarks = new PdoBookmarkRepository(db());
+    $user = (new PdoUserRepository(db()))->create(
+        'Penyimpan Arsip',
+        'arsip-' . uniqid() . '@example.test',
+        password_hash('secret123', PASSWORD_DEFAULT),
+        UserRole::User,
+    );
+
+    $start = new DateTimeImmutable('+10 days');
+    $event = guestEvent('tipe-bulan-' . uniqid(), [
+        'event_type' => EventType::Webinar->value,
+        'event_start_at' => $start->format('Y-m-d H:i:sP'),
+        'event_end_at' => $start->modify('+2 hours')->format('Y-m-d H:i:sP'),
+    ]);
+    $month = $start->setTimezone(new DateTimeZone('Asia/Jakarta'))->format('Y-m');
+
+    $typed = $events->paginatePublicCatalog(new CatalogFilter(
+        q: (string) $event['title'],
+        type: EventType::Webinar->value,
+        month: $month,
+    ));
+    assertSame(1, count($typed->items));
+    assertSame($event['id'], $typed->items[0]['id']);
+
+    $wrongType = $events->paginatePublicCatalog(new CatalogFilter(
+        q: (string) $event['title'],
+        type: EventType::Seminar->value,
+    ));
+    assertSame(0, count($wrongType->items));
+
+    assertTrue($bookmarks->add((int) $user['id'], (int) $event['id']));
+    db()->execute(
+        'INSERT INTO moderation_logs (event_id, action, reason) VALUES (:event_id, :action, :reason)',
+        ['event_id' => (int) $event['id'], 'action' => 'approve', 'reason' => 'uji'],
+    );
+
+    $events->archive((int) $event['id']);
+    $archived = $events->findById((int) $event['id']);
+    assertSame('archived', $archived['status']);
+    assertTrue($archived['archived_at'] !== null);
+    assertTrue($bookmarks->exists((int) $user['id'], (int) $event['id']));
+    assertSame(1, (int) db()->selectOne(
+        'SELECT count(*) AS total FROM moderation_logs WHERE event_id = :id',
+        ['id' => (int) $event['id']],
+    )['total']);
+
+    $visible = $events->paginatePublicCatalog(new CatalogFilter(q: (string) $event['title']));
+    assertSame(0, count($visible->items));
 });

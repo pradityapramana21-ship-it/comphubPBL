@@ -8,6 +8,7 @@ use App\Core\Paginator;
 use App\DataTransferObjects\CatalogFilter;
 use App\Enums\EventStatus;
 use App\Repositories\Contracts\EventRepository;
+use App\Support\DateHelper;
 
 final class PdoEventRepository extends PdoRepository implements EventRepository
 {
@@ -24,12 +25,16 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
 
     public function paginatePublicCatalog(CatalogFilter $filter): Paginator
     {
-        $where = ["e.status = 'approved'", 'c.is_active = TRUE', "p.verification_status = 'verified'"];
+        $where = ["e.status = 'approved'", 'e.archived_at IS NULL', 'c.is_active = TRUE',
+            "p.verification_status = 'verified'"];
         $params = [];
 
         if ($filter->status === 'closed') {
             $where[] = 'e.registration_deadline < now()';
-        } else {
+        } elseif ($filter->status === 'upcoming') {
+            $where[] = 'e.registration_start_at IS NOT NULL AND e.registration_start_at > now()';
+        } elseif ($filter->status === 'open') {
+            $where[] = '(e.registration_start_at IS NULL OR e.registration_start_at <= now())';
             $where[] = 'e.registration_deadline >= now()';
         }
 
@@ -51,8 +56,9 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
     public function findLatestOpen(int $limit): array
     {
         return $this->database->select(
-            self::SELECT . " WHERE e.status = 'approved' AND c.is_active = TRUE
+            self::SELECT . " WHERE e.status = 'approved' AND e.archived_at IS NULL AND c.is_active = TRUE
                 AND p.verification_status = 'verified'
+                AND (e.registration_start_at IS NULL OR e.registration_start_at <= now())
                 AND e.registration_deadline >= now()
                 ORDER BY e.published_at DESC, e.id DESC LIMIT " . max(1, min(50, $limit)),
             [],
@@ -62,8 +68,9 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
     public function findDeadlineSoon(int $limit): array
     {
         return $this->database->select(
-            self::SELECT . " WHERE e.status = 'approved' AND c.is_active = TRUE
+            self::SELECT . " WHERE e.status = 'approved' AND e.archived_at IS NULL AND c.is_active = TRUE
                 AND p.verification_status = 'verified'
+                AND (e.registration_start_at IS NULL OR e.registration_start_at <= now())
                 AND e.registration_deadline >= now()
                 AND e.registration_deadline <= now() + interval '14 days'
                 ORDER BY e.registration_deadline ASC, e.id ASC LIMIT " . max(1, min(50, $limit)),
@@ -75,7 +82,7 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
     {
         return $this->database->select(
             self::SELECT . " WHERE e.provider_profile_id = :provider_id
-                AND e.status = 'approved' AND c.is_active = TRUE
+                AND e.status = 'approved' AND e.archived_at IS NULL AND c.is_active = TRUE
                 AND p.verification_status = 'verified'
                 ORDER BY e.registration_deadline >= now() DESC, e.published_at DESC, e.id DESC LIMIT "
                 . max(1, min(100, $limit)),
@@ -161,7 +168,9 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
             'registration_url', 'mode', 'location_text', 'platform_url', 'event_start_at',
             'event_end_at', 'registration_deadline', 'deadline_confirmed', 'status', 'risk_score', 'submitted_at',
             'published_at', 'archived_at', 'rejection_reason', 'organizer_name', 'source_url',
-            'source_checked_at', 'source_note',
+            'source_checked_at', 'source_note', 'event_type', 'registration_start_at', 'poster_path',
+            'guidebook_path', 'organizer_email', 'contact_number', 'revision_token_hash',
+            'revision_token_expires_at', 'revision_token_revoked_at', 'revision_token_last_used_at',
         ];
         $data = array_intersect_key($attributes, array_flip($allowed));
         $columns = array_keys($data);
@@ -183,7 +192,9 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
             'registration_url', 'mode', 'location_text', 'platform_url', 'event_start_at', 'event_end_at',
             'registration_deadline', 'deadline_confirmed', 'status', 'risk_score', 'submitted_at', 'published_at',
             'archived_at', 'rejection_reason', 'organizer_name', 'source_url',
-            'source_checked_at', 'source_note',
+            'source_checked_at', 'source_note', 'event_type', 'registration_start_at', 'poster_path',
+            'guidebook_path', 'organizer_email', 'contact_number', 'revision_token_hash',
+            'revision_token_expires_at', 'revision_token_revoked_at', 'revision_token_last_used_at',
         ];
 
         return $this->updateById('events', $id, $attributes, $allowed)
@@ -193,6 +204,36 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
     public function delete(int $id): void
     {
         $this->database->execute('DELETE FROM events WHERE id = :id', ['id' => $id]);
+    }
+
+    public function archive(int $id): void
+    {
+        $this->database->execute(
+            "UPDATE events SET status = 'archived', archived_at = now(), updated_at = now() WHERE id = :id",
+            ['id' => $id],
+        );
+    }
+
+    public function availableMonths(): array
+    {
+        $rows = $this->database->select(
+            "SELECT DISTINCT to_char(e.event_start_at AT TIME ZONE 'Asia/Jakarta', 'YYYY-MM') AS value
+             FROM events e
+             JOIN categories c ON c.id = e.category_id
+             JOIN provider_profiles p ON p.id = e.provider_profile_id
+             WHERE e.status = 'approved' AND e.archived_at IS NULL AND c.is_active = TRUE
+               AND p.verification_status = 'verified'
+             ORDER BY value ASC",
+        );
+        $dates = new DateHelper();
+        $months = [];
+
+        foreach ($rows as $row) {
+            $value = (string) $row['value'];
+            $months[] = ['value' => $value, 'label' => $dates->monthLabel($value)];
+        }
+
+        return $months;
     }
 
     public function countSubmissionsSince(int $providerProfileId, \DateTimeInterface $since): int
@@ -249,8 +290,9 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
     {
         return (int) ($this->database->selectOne(
             "SELECT count(*) AS total" . self::FROM . "
-             WHERE e.status = 'approved' AND c.is_active = TRUE
+             WHERE e.status = 'approved' AND e.archived_at IS NULL AND c.is_active = TRUE
                AND p.verification_status = 'verified'
+               AND (e.registration_start_at IS NULL OR e.registration_start_at <= now())
                AND e.registration_deadline >= now()",
         )['total'] ?? 0);
     }
@@ -270,8 +312,8 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
     public function findApprovedBySlug(string $slug): ?array
     {
         return $this->database->selectOne(
-            self::SELECT . " WHERE e.slug = :slug AND e.status = 'approved' AND c.is_active = TRUE
-                AND p.verification_status = 'verified'",
+            self::SELECT . " WHERE e.slug = :slug AND e.status = 'approved' AND e.archived_at IS NULL
+                AND c.is_active = TRUE AND p.verification_status = 'verified'",
             ['slug' => $slug],
         );
     }
@@ -288,7 +330,7 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
     {
         return (int) ($this->database->selectOne(
             "SELECT count(*) AS total" . self::FROM . "
-             WHERE e.status = 'approved' AND c.is_active = TRUE
+             WHERE e.status = 'approved' AND e.archived_at IS NULL AND c.is_active = TRUE
                AND p.verification_status = 'verified' AND e.published_at > :since",
             ['since' => $since],
         )['total'] ?? 0);
@@ -297,7 +339,7 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
     public function findNewSince(string $since, int $limit = 50): array
     {
         return $this->database->select(
-            self::SELECT . " WHERE e.status = 'approved' AND c.is_active = TRUE
+            self::SELECT . " WHERE e.status = 'approved' AND e.archived_at IS NULL AND c.is_active = TRUE
                 AND p.verification_status = 'verified'
                 AND e.published_at > :since
                 ORDER BY e.published_at DESC, e.id DESC LIMIT " . max(1, min(100, $limit)),
@@ -340,6 +382,18 @@ final class PdoEventRepository extends PdoRepository implements EventRepository
         if (in_array($filter->mode, ['online', 'offline', 'hybrid'], true)) {
             $where[] = 'e.mode = :mode';
             $params['mode'] = $filter->mode;
+        }
+
+        if (in_array($filter->type, \App\Enums\EventType::values(), true)) {
+            $where[] = 'e.event_type = :event_type';
+            $params['event_type'] = $filter->type;
+        }
+
+        if ($filter->month !== '') {
+            $start = new \DateTimeImmutable($filter->month . '-01 00:00:00', new \DateTimeZone('Asia/Jakarta'));
+            $where[] = 'e.event_start_at >= :month_start AND e.event_start_at < :month_end';
+            $params['month_start'] = $start->format('Y-m-d H:i:sP');
+            $params['month_end'] = $start->modify('+1 month')->format('Y-m-d H:i:sP');
         }
     }
 

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Services;
 
 use App\Enums\EventStatus;
+use App\Enums\RegistrationStatus;
 use App\Enums\ReportStatus;
 use App\Enums\UserRole;
 use App\Enums\VerificationStatus;
@@ -82,7 +83,8 @@ final class Access
     {
         return $this->isActive($user)
             && ($event['status'] ?? '') === EventStatus::Approved->value
-            && $this->deadlineOpen($event);
+            && ($event['archived_at'] ?? null) === null
+            && RegistrationStatus::fromEvent($event) === RegistrationStatus::Open;
     }
 
     /** @param array<string, mixed>|null $user @param array<string, mixed> $event */
@@ -154,13 +156,5 @@ final class Access
         $profileId = (int) ($user['provider_profile_id'] ?? 0);
 
         return $profileId > 0 && $profileId === (int) ($event['provider_profile_id'] ?? -1);
-    }
-
-    /** @param array<string, mixed> $event */
-    private function deadlineOpen(array $event): bool
-    {
-        $deadline = $event['registration_deadline'] ?? null;
-
-        return is_string($deadline) && strtotime($deadline) !== false && strtotime($deadline) >= time();
     }
 }

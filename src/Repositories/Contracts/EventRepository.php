@@ -34,6 +34,11 @@ interface EventRepository
 
     public function delete(int $id): void;
 
+    public function archive(int $id): void;
+
+    /** @return list<array{value: string, label: string}> */
+    public function availableMonths(): array;
+
     public function countSubmissionsSince(int $providerProfileId, \DateTimeInterface $since): int;
 
     /** @return list<array<string, mixed>> */
