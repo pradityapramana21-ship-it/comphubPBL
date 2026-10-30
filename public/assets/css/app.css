@@ -901,3 +901,16 @@ body {
     .nav-links.is-open { display: flex; }
     .site-nav { flex-wrap: wrap; }
 }
+
+.moderation-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(260px, 0.8fr);
+    gap: 1rem;
+    align-items: start;
+}
+.moderation-grid .section { margin: 0; }
+.moderation-grid aside .admin-form { display: grid; gap: 0.45rem; margin: 0 0 1rem; }
+.moderation-grid aside .admin-form textarea { min-height: 5.5rem; }
+@media (max-width: 860px) {
+    .moderation-grid { grid-template-columns: 1fr; }
+}

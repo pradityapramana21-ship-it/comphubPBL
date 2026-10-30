@@ -9,7 +9,7 @@ $action = $isEdit ? '/admin/kegiatan/' . $event['id'] : '/admin/kegiatan';
 $statusLabels = [
     'draft' => 'Draf',
     'pending' => 'Menunggu peninjauan',
-    'changes_requested' => 'Perlu perubahan',
+    'changes_requested' => 'Perlu revisi',
     'approved' => 'Tayang',
     'rejected' => 'Ditolak',
     'expired' => 'Kedaluwarsa',
@@ -57,13 +57,22 @@ $deadlineChecked = $deadlineValue === true || $deadlineValue === 1 || $deadlineV
             </select>
         </div>
         <div>
-            <label for="category_id">Kategori</label>
+            <label for="category_id">Topik</label>
             <select id="category_id" name="category_id" required>
-                <option value="">Pilih kategori</option>
+                <option value="">Pilih topik</option>
                 <?php foreach ($categories as $category): ?>
                     <option value="<?= (int) $category['id'] ?>" <?= (string) old('category_id', $event['category_id'] ?? '') === (string) $category['id'] ? 'selected' : '' ?>>
                         <?= e($category['name']) ?>
                     </option>
+                <?php endforeach; ?>
+            </select>
+        </div>
+        <div>
+            <label for="event_type">Jenis</label>
+            <select id="event_type" name="event_type">
+                <option value="">Belum ditentukan</option>
+                <?php foreach (['competition' => 'Lomba', 'webinar' => 'Webinar', 'seminar' => 'Seminar'] as $value => $label): ?>
+                    <option value="<?= e($value) ?>" <?= old('event_type', $event['event_type'] ?? '') === $value ? 'selected' : '' ?>><?= e($label) ?></option>
                 <?php endforeach; ?>
             </select>
         </div>
@@ -83,6 +92,17 @@ $deadlineChecked = $deadlineValue === true || $deadlineValue === 1 || $deadlineV
                     </option>
                 <?php endforeach; ?>
             </select>
+        </div>
+    </div>
+
+    <div class="admin-form-row">
+        <div>
+            <label for="organizer_email">Email penyelenggara</label>
+            <input id="organizer_email" name="organizer_email" type="email" maxlength="190" value="<?= e(old('organizer_email', $event['organizer_email'] ?? '')) ?>">
+        </div>
+        <div>
+            <label for="contact_number">Nomor kontak</label>
+            <input id="contact_number" name="contact_number" maxlength="40" value="<?= e(old('contact_number', $event['contact_number'] ?? '')) ?>">
         </div>
     </div>
 
@@ -151,6 +171,10 @@ $deadlineChecked = $deadlineValue === true || $deadlineValue === 1 || $deadlineV
 
     <div class="admin-form-row">
         <div>
+            <label for="registration_start_at">Pendaftaran dibuka</label>
+            <input id="registration_start_at" name="registration_start_at" type="datetime-local" value="<?= e(old('registration_start_at', $values['registration_start_at'] ?? '')) ?>">
+        </div>
+        <div>
             <label for="registration_deadline">Tenggat pendaftaran</label>
             <input id="registration_deadline" name="registration_deadline" type="datetime-local" value="<?= e(old('registration_deadline', $values['registration_deadline'] ?? '')) ?>" required>
         </div>
@@ -175,8 +199,8 @@ $deadlineChecked = $deadlineValue === true || $deadlineValue === 1 || $deadlineV
 </form>
 
 <?php if ($isEdit): ?>
-    <form class="admin-danger-zone" method="post" action="<?= e(url('/admin/kegiatan/' . $event['id'] . '/hapus')) ?>" onsubmit="return confirm('Hapus kegiatan ini? Tindakan ini tidak dapat dibatalkan.')">
+    <form class="admin-danger-zone" method="post" action="<?= e(url('/admin/kegiatan/' . $event['id'] . '/hapus')) ?>" onsubmit="return confirm('Arsipkan kegiatan ini? Kegiatan hilang dari publik, tetapi data dan simpanan tetap utuh.')">
         <?= csrf_field() ?>
-        <button type="submit" class="button button-danger">Hapus kegiatan</button>
+        <button type="submit" class="button button-danger">Arsipkan kegiatan</button>
     </form>
 <?php endif; ?>

@@ -18,6 +18,7 @@ use App\Repositories\Contracts\AuditLogRepository;
 use App\Repositories\Contracts\CategoryRepository;
 use App\Repositories\Contracts\EventRepository;
 use App\Repositories\Contracts\ProviderProfileRepository;
+use App\Services\ModerationService;
 use App\Support\SlugGenerator;
 
 final class AdminEventController extends Controller
@@ -29,6 +30,7 @@ final class AdminEventController extends Controller
         private readonly ProviderProfileRepository $providers,
         private readonly AuditLogRepository $audit,
         private readonly Auth $auth,
+        private readonly ModerationService $moderation,
     ) {
         parent::__construct($view);
     }
@@ -113,10 +115,13 @@ final class AdminEventController extends Controller
     public function destroy(Request $request): Response
     {
         $event = $this->findEvent($request);
-
-        $this->audit($request, 'event.delete', (int) $event['id'], ['title' => $event['title']]);
-        $this->events->delete((int) $event['id']);
-        app()->session()->flash('status', 'Kegiatan dihapus.');
+        $this->moderation->archive(
+            (int) $event['id'],
+            (int) $this->auth->id(),
+            $request->ip(),
+            $request->header('user-agent'),
+        );
+        app()->session()->flash('status', 'Kegiatan diarsipkan. Data dan simpanan tetap utuh.');
 
         return $this->redirect(url('/admin/kegiatan'));
     }
@@ -158,6 +163,10 @@ final class AdminEventController extends Controller
             'registration_deadline' => 'required|date|before_or_equal:event_start_at',
             'status' => 'required|in:' . implode(',', EventStatus::values()),
             'rejection_reason' => 'nullable|string|max:2000',
+            'event_type' => 'nullable|in:competition,webinar,seminar',
+            'registration_start_at' => 'nullable|date',
+            'organizer_email' => 'nullable|email|max:190',
+            'contact_number' => 'nullable|string|max:40',
         ];
 
         $data = (new Validator($request->all(), [], $rules, [], [
@@ -239,6 +248,12 @@ final class AdminEventController extends Controller
             'source_url' => (string) $data['source_url'],
             'source_checked_at' => $this->toDbDate($data['source_checked_at']),
             'source_note' => $data['source_note'] ?? null,
+            'event_type' => trim((string) ($data['event_type'] ?? '')) ?: ($existing['event_type'] ?? null),
+            'registration_start_at' => trim((string) ($data['registration_start_at'] ?? '')) !== ''
+                ? $this->toDbDateTime($data['registration_start_at'])
+                : ($existing['registration_start_at'] ?? null),
+            'organizer_email' => trim((string) ($data['organizer_email'] ?? '')) ?: ($existing['organizer_email'] ?? null),
+            'contact_number' => trim((string) ($data['contact_number'] ?? '')) ?: ($existing['contact_number'] ?? null),
         ];
     }
 
@@ -249,6 +264,7 @@ final class AdminEventController extends Controller
             'event_start_at' => $this->localDateTime($event['event_start_at'] ?? null),
             'event_end_at' => $this->localDateTime($event['event_end_at'] ?? null),
             'registration_deadline' => $this->localDateTime($event['registration_deadline'] ?? null),
+            'registration_start_at' => $this->localDateTime($event['registration_start_at'] ?? null),
             'source_checked_at' => $this->localDate($event['source_checked_at'] ?? null),
         ];
     }

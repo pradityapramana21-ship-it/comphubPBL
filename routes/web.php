@@ -6,6 +6,7 @@ use App\Core\Router;
 use App\Http\Controllers\Admin\AdminAuditController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminEventController;
+use App\Http\Controllers\Admin\AdminModerationController;
 use App\Http\Controllers\Admin\AdminProviderController;
 use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminUserController;
@@ -83,6 +84,13 @@ $router->get('/admin/pengguna/{user:id}', [AdminUserController::class, 'edit'])-
 $router->post('/admin/pengguna/{user:id}', [AdminUserController::class, 'update'])->name('admin.users.update')->middleware('role:admin');
 $router->post('/admin/pengguna/{user:id}/hapus', [AdminUserController::class, 'destroy'])->name('admin.users.destroy')->middleware('role:admin');
 
+$router->get('/admin/moderasi', [AdminModerationController::class, 'index'])->name('admin.moderation.index')->middleware('role:admin');
+$router->get('/admin/moderasi/{event:id}', [AdminModerationController::class, 'show'])->name('admin.moderation.show')->middleware('role:admin');
+$router->post('/admin/moderasi/{event:id}/setujui', [AdminModerationController::class, 'approve'])->name('admin.moderation.approve')->middleware('role:admin');
+$router->post('/admin/moderasi/{event:id}/tolak', [AdminModerationController::class, 'reject'])->name('admin.moderation.reject')->middleware('role:admin');
+$router->post('/admin/moderasi/{event:id}/minta-revisi', [AdminModerationController::class, 'requestChanges'])->name('admin.moderation.revision')->middleware('role:admin');
+$router->post('/admin/moderasi/{event:id}/token', [AdminModerationController::class, 'reissueToken'])->name('admin.moderation.token')->middleware('role:admin');
+$router->post('/admin/moderasi/{event:id}/arsipkan', [AdminModerationController::class, 'archive'])->name('admin.moderation.archive')->middleware('role:admin');
 $router->get('/admin/kegiatan', [AdminEventController::class, 'index'])->name('admin.events.index')->middleware('role:admin');
 $router->get('/admin/kegiatan/baru', [AdminEventController::class, 'create'])->name('admin.events.create')->middleware('role:admin');
 $router->post('/admin/kegiatan', [AdminEventController::class, 'store'])->name('admin.events.store')->middleware('role:admin');

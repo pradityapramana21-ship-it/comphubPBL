@@ -7,7 +7,7 @@ $paginator = $events;
 $statusLabels = [
     'draft' => 'Draf',
     'pending' => 'Menunggu',
-    'changes_requested' => 'Perlu perubahan',
+    'changes_requested' => 'Perlu revisi',
     'approved' => 'Tayang',
     'rejected' => 'Ditolak',
     'expired' => 'Kedaluwarsa',
@@ -27,7 +27,7 @@ $statusClasses = [
     <div>
         <p class="eyebrow">Admin</p>
         <h1>Kegiatan</h1>
-        <p class="muted-note">Tambah, ubah, tinjau status, dan hapus kegiatan dari database.</p>
+        <p class="muted-note">Tambah, ubah, tinjau status, dan arsipkan kegiatan. Hapus permanen tidak tersedia.</p>
     </div>
     <a class="button" href="<?= e(url('/admin/kegiatan/baru')) ?>">Tambah kegiatan</a>
 </div>
@@ -104,9 +104,9 @@ $statusClasses = [
                         <td>
                             <div class="admin-actions">
                                 <a class="button button-small button-secondary" href="<?= e(url('/admin/kegiatan/' . $row['id'])) ?>">Ubah</a>
-                                <form method="post" action="<?= e(url('/admin/kegiatan/' . $row['id'] . '/hapus')) ?>" onsubmit="return confirm('Hapus kegiatan ini? Tindakan ini tidak dapat dibatalkan.')">
+                                <form method="post" action="<?= e(url('/admin/kegiatan/' . $row['id'] . '/hapus')) ?>" onsubmit="return confirm('Arsipkan kegiatan ini? Data dan simpanan tetap utuh.')">
                                     <?= csrf_field() ?>
-                                    <button type="submit" class="button button-small button-danger">Hapus</button>
+                                    <button type="submit" class="button button-small button-danger">Arsipkan</button>
                                 </form>
                             </div>
                         </td>

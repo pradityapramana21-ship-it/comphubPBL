@@ -23,11 +23,13 @@ final class PdoModerationLogRepository extends PdoRepository implements Moderati
         ?string $reason = null,
         ?int $riskScore = null,
         ?array $metadata = null,
+        ?string $previousStatus = null,
+        ?string $newStatus = null,
     ): array {
         $id = $this->database->insert(
             'INSERT INTO moderation_logs
-                (event_id, actor_user_id, action, rule_key, reason, risk_score, metadata)
-             VALUES (:event_id, :actor, :action, :rule_key, :reason, :risk_score, :metadata)
+                (event_id, actor_user_id, action, rule_key, reason, risk_score, metadata, previous_status, new_status)
+             VALUES (:event_id, :actor, :action, :rule_key, :reason, :risk_score, :metadata, :previous_status, :new_status)
              RETURNING id',
             [
                 'event_id' => $eventId,
@@ -37,6 +39,8 @@ final class PdoModerationLogRepository extends PdoRepository implements Moderati
                 'reason' => $reason,
                 'risk_score' => $riskScore,
                 'metadata' => $metadata === null ? null : json_encode($metadata, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                'previous_status' => $previousStatus,
+                'new_status' => $newStatus,
             ],
         );
 

@@ -24,7 +24,7 @@ enum ModerationAction: string
             self::AutoRejected => 'Ditolak Otomatis',
             self::Approve => 'Disetujui',
             self::Reject => 'Ditolak',
-            self::RequestChanges => 'Diminta Perbaikan',
+            self::RequestChanges => 'Minta revisi',
             self::Archive => 'Diarsipkan',
             self::Expire => 'Kedaluwarsa',
             self::Unarchive => 'Dibuka Kembali',

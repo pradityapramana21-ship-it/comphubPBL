@@ -34,6 +34,7 @@ use App\Repositories\Pdo\PdoReportRepository;
 use App\Repositories\Pdo\PdoUserRepository;
 use App\Services\CurationProfileService;
 use App\Services\EventSubmissionService;
+use App\Services\ModerationService;
 use App\Services\RevisionTokenService;
 use App\Services\UploadService;
 use App\Support\FileCache;
@@ -93,6 +94,13 @@ $container->singleton(EventSubmissionService::class, static fn (Container $c): E
     $c->make(CurationProfileService::class),
     $c->make(UploadService::class),
     new \App\Support\SlugGenerator($c->make(Database::class)),
+));
+$container->singleton(ModerationService::class, static fn (Container $c): ModerationService => new ModerationService(
+    $c->make(Database::class),
+    $c->make(EventRepository::class),
+    $c->make(ModerationLogRepository::class),
+    $c->make(AuditLogRepository::class),
+    $c->make(RevisionTokenService::class),
 ));
 
 $app = new App($container);

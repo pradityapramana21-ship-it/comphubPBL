@@ -19,7 +19,7 @@ enum EventStatus: string
         return match ($this) {
             self::Draft => 'Draf',
             self::Pending => 'Menunggu Tinjauan',
-            self::ChangesRequested => 'Perlu Diperbaiki',
+            self::ChangesRequested => 'Perlu revisi',
             self::Rejected => 'Ditolak',
             self::Approved => 'Tayang',
             self::Expired => 'Kedaluwarsa',

@@ -18,6 +18,8 @@ interface ModerationLogRepository
         ?string $reason = null,
         ?int $riskScore = null,
         ?array $metadata = null,
+        ?string $previousStatus = null,
+        ?string $newStatus = null,
     ): array;
 
     /** @return list<array<string, mixed>> */

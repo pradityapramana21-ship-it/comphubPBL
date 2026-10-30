@@ -6,7 +6,7 @@
 $eventLabels = [
     'draft' => 'Draf',
     'pending' => 'Menunggu',
-    'changes_requested' => 'Perlu perubahan',
+    'changes_requested' => 'Perlu revisi',
     'approved' => 'Tayang',
     'rejected' => 'Ditolak',
     'expired' => 'Kedaluwarsa',

@@ -3,6 +3,7 @@ $adminPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $adminLinks = [
     '/admin' => 'Ringkasan',
     '/admin/pengguna' => 'Pengguna',
+    '/admin/moderasi' => 'Moderasi',
     '/admin/kegiatan' => 'Kegiatan',
     '/admin/penyedia' => 'Penyelenggara',
     '/admin/laporan' => 'Laporan',
