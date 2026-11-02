@@ -62,7 +62,8 @@ a { color: var(--accent); }
     gap: 1rem;
 }
 
-.brand { font-weight: 700; color: var(--ink); text-decoration: none; font-size: 1.15rem; }
+.brand { display: inline-flex; align-items: center; flex: 0 0 auto; font-weight: 700; color: var(--ink); text-decoration: none; font-size: 1.15rem; }
+.brand img { display: block; height: 32px; width: auto; }
 .nav-links { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
 .nav-links a { color: var(--ink); text-decoration: none; min-height: 44px; display: inline-flex; align-items: center; }
 .nav-links a:hover { color: var(--accent); }
@@ -813,6 +814,7 @@ body {
 }
 
 @media (max-width: 760px) {
+    .brand img { height: 28px; }
     .catalog-layout { grid-template-columns: 1fr; }
     .filter-sidebar { position: static; }
     .event-grid { grid-template-columns: 1fr; }

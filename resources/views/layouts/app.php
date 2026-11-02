@@ -28,7 +28,7 @@ $navItems = [
     <a class="skip-link" href="#main">Lewati ke konten</a>
     <header class="site-header">
         <nav class="site-nav" aria-label="Navigasi utama">
-            <a class="brand" href="<?= e(url('/')) ?>">CompHub</a>
+            <a class="brand" href="<?= e(url('/')) ?>"><img src="<?= e(asset('/assets/img/comphub-logo.png')) ?>" alt="CompHub" width="269" height="32"></a>
             <button type="button" class="nav-toggle" data-nav-toggle aria-expanded="false" aria-controls="primary-nav">Menu</button>
             <div class="nav-links" id="primary-nav" data-nav>
                 <?php foreach ($navItems as $href => $label): ?>
